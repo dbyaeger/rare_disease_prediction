@@ -1,0 +1,10 @@
+__pycache__
+./__pycache__
+aip
+./aip
+models
+results
+./models
+./results
+.DS_Store
+
