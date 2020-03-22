@@ -9,10 +9,10 @@ Set of functions and commands to create, run, and save each model.
 """
 
 from sklearn.svm import SVC
-from imblearn.metrics import geometric_mean_score, average_precision_score
+from imblearn.metrics import geometric_mean_score
 from imblearn.under_sampling import TomekLinks
-from sklearn.metrics import make_scorer
-from sampling_functions import tomek_links, one_sided_selection, random_undersample
+from sklearn.metrics import make_scorer, average_precision_score
+from model_parameters.sampling_functions import tomek_links, one_sided_selection, random_undersample
 
 # parameters common to all models
 common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
@@ -64,7 +64,8 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersamp
 def make_model_param_list(input_list: list = [svc,svc_tomek_links,svc_one_sided,
                                               svc_random_undersample],
                     common_params: dict = common_params):
-    return list(map(lambda x, y=common_params: x.update(y),input_list))
+    for model_param in input_list: model_param.update(common_params)
+    return input_list
 
     
               
