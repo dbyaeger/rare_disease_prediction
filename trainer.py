@@ -62,6 +62,7 @@ class Trainer():
         self.save_training_data_path = self.convert_to_path(save_training_data_path)
         self.save_model_path = self.convert_to_path(save_model_path)
         self.metric = metric
+        self.sampling_method = sampling_method
         self.max_evals = max_evals
         self.repetitions = repetitions
         self.cv_fold = cv_fold

@@ -14,7 +14,6 @@ def run_training():
     using the train_and_save_model method of the TrainingMain class.
     """
     model_parameter_list = make_model_param_list()
-    print(model_parameter_list)
     for model_params in model_parameter_list:
         model_trainer = Trainer(**model_params)
         model_trainer.train_and_save_model()
