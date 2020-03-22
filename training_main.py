@@ -10,6 +10,7 @@ from dataset_helpers import dataset_preprocessing_and_partitioning
 from feature_helpers import log_and_normalize_features
 from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import make_scorer
+from imblearn.under_sampling import OneSidedSelection
 from pathlib import Path
 from sklearn.svm import SVC
 import numpy as np
@@ -19,22 +20,46 @@ import joblib
 class TrainingMain():
     """Wrapper class for loading and preprocessing data, training a model,
     and saving the trained model with the parameters optimizied by cross-validation
+    
+    INPUTS:
+        classifier: classifier model to be used
+        model_name: filename for saving model and output
+        x: numpy array of x training values
+        sampling_method: function to perform sampling
+        log_normalize: if True, log-normalize variables before sampling or training
+            classifier
+        path_to_data: path to where data lives.
+        save_training_data_path: path or string to where results should be saved.
+            Results are the loss values on the CV set and corresponding
+            classifier parameters when performing bayesian optimization of
+            classifier.
+        save_model_path: path or string to where models should be saved.
+        metric: metric to be optimizied on validation set. Should be a callable
+            function.
+        max_evals: how many iterations are allowed for finding best parameters
+        repetitions: how many times cross-validation should be repeated and averaged
+        cv_fold: what fold cross-validation should be performed
+        variables: list of variables to optimize
+        distributions: distributions to use for each variable (by order)
+        arguments: arguments to each distribution-generating function as tuple
+        variable_type: dictionary in which keys are variables and value is
+            whether variable applies to estimator or sampler
     """
-    def __init__(self, classifier = SVC, model_name: str = 'SVC',
-                 sampling_strategy: str = None, log_normalize: bool = True,
+    def __init__(self, classifier = SVC, model_name: str = 'SVC_OneSidedSelection',
+                 sampling_method: callable = None, log_normalize: bool = True,
                 path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                 save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/results',
                 save_model_path: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
                 metric: callable = make_scorer(geometric_mean_score),
-                max_evals: int = 20,
+                max_evals: int = 200,
                 repetitions: int = 5, cv_fold: int = 2,
                 variables: list = ['C', 'gamma'],
                 distributions: list = ['loguniform','loguniform'],
-                arguments: list = [(0.1, 100),(1e-3,1)]):
+                arguments: list = [(0.1, 100),(1e-3,1)],
+                variable_type: dict = {'C':'estimator','gamma':'estimator'}):
         
         self.classifier = classifier
         self.model_name = model_name
-        self.sampling_strategy = sampling_strategy
         self.save_training_data_path = self.convert_to_path(save_training_data_path)
         self.save_model_path = self.convert_to_path(save_model_path)
         self.metric = metric
@@ -44,16 +69,9 @@ class TrainingMain():
         self.variables = variables
         self.distributions = distributions
         self.arguments = arguments
+        self.variable_type = variable_type
         self.x, self.y = self.load_data(self.convert_to_path(path_to_data), 
                                         log_normalize)
-        if sampling_strategy is not None:
-            self.x, self.y = self.sample()
-    
-    
-    def sample(self):
-        """Wrapper method for different sampling strategies
-        """
-        pass
     
     def train_and_save_model(self):
         """ Wrapper method to find the best parameters, retrain model using the
@@ -64,12 +82,14 @@ class TrainingMain():
         
         # Instantiate new bayesian optimizer
         bc = BayesianOptimizer(estimator = self.classifier, x = self.x, 
-                               y = self.y, metric = self.metric, 
+                               y = self.y, metric = self.metric,
+                               sampling_method = self.sampling_method,
                                savepath = savepath,
                                max_evals = self.max_evals, cv_fold = self.cv_fold,
                                variables = self.variables,
                                distributions = self.distributions,
-                               arguments = self.arguments)
+                               arguments = self.arguments,
+                               variable_type = self.variable_type)
         
         # Train
         bc.optimize_params()
@@ -124,12 +144,6 @@ class TrainingMain():
         
         x = training_data.to_numpy()
         
-#        y_pos = np.nonzero(y == 1)[0]
-#        y_neg = np.nonzero(y == -1)[0][:2000]
-#        idx = np.concatenate((y_pos,y_neg))
-#        x = x[idx, :]
-#        y = y[idx]
-        
         return x,y
  
     @staticmethod
@@ -142,6 +156,8 @@ class TrainingMain():
         return path
 
 if __name__ == "__main__":
-    tm = TrainingMain()
+    
+    oss_obj = OneSidedSelection(random_state=42,n_jobs=4)    
+    tm = TrainingMain(sampling_strategy = oss_obj.fit_resample, model_name = 'SVC_OneSidedSelection')
     tm.train_and_save_model()
     

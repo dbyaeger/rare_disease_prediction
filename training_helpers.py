@@ -12,7 +12,7 @@ from sklearn.model_selection import cross_val_score
 from hyperopt import STATUS_OK
 from sklearn.svm import SVC
 import csv
-from hyperopt.hp import lognormal, loguniform
+from hyperopt.hp import lognormal, loguniform, uniform
 from pathlib import Path
 from hyperopt import Trials, tpe, fmin
 
@@ -54,6 +54,8 @@ class BayesianOptimizer():
         variables: list of variables to optimize
         distributions: distributions to use for each variable (by order)
         arguments: arguments to each distribution-generating function as tuple
+        variable_type: dictionary in which keys are variables and value is
+            whether variable applies to estimator or sampler
         
     Builds a .csv file at the path specified by savepath which can be used to
     find the best model parameters.
@@ -61,19 +63,23 @@ class BayesianOptimizer():
     Also has a results attribute which can also be used to find the best model
     parameters.
     """
-    def __init__(self, estimator, x: np.ndarray, y: np.ndarray, 
+    def __init__(self: callable, estimator, x: np.ndarray, y: np.ndarray,
+                 sampler: callable = None,
                  metric: callable = make_scorer(geometric_mean_score),
                  savepath: str = '/Users/yaeger/Documents/Modules/Porphyria/results/test',
                  max_evals: int = 50,
                  repetitions: int = 5, cv_fold: int = 2,
                  variables: list = ['C', 'gamma'],
                  distributions: list = ['loguniform','loguniform'],
-                 arguments: list = [(0.1, 10),(1e-6,2)]):
+                 arguments: list = [(0.1, 10),(1e-6,2)],
+                 variable_type: dict = {'C':'estimator','gamma':'estimator'}):
+        self.sampler = sampler
         self.x = x
         self.y = y
         self.estimator = estimator
         self.metric = metric
         self.max_evals = max_evals
+        self.variable_type = variable_type
         
         if not isinstance(savepath,Path): savepath = Path(savepath)
         self.savepath = savepath
@@ -90,12 +96,26 @@ class BayesianOptimizer():
         # create domain space
         self.space = self.create_domain_space(variables,distributions,arguments)
         
+        # if sampler doesn't have parameters, just sample once
+        if self.sampler is not None:
+            if 'sampler' not in self.variable_type.values():
+                self.x, self.y = self.sampler(self.x, self.y)
+            
+        
     def objective(self, params):
         """Objective function for Hyperparameter optimization
         """
         self.iteration += 1
         
-        metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
+        if 'sampler' not in self.variable_type.values():
+            metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
+        else:
+            sampler_params = {param: params[param] for param in params if \
+                              self.variable_type[param] == 'sampler'}
+            x,y = self.sampler(**sampler_params)
+            estimator_params = {param: params[param] for param in params if \
+                              self.variable_type[param] == 'estimator'}
+            metric_result = repeated_cross_val(self.estimator, x, y, **estimator_params)
         
         # make metric_result negative for optimization
         loss = 1 - metric_result
@@ -146,6 +166,9 @@ class BayesianOptimizer():
             elif distributions[i] == 'lognormal':
                 mu, sigma = arguments[i]
                 space[variable] = loguniform(variable,mu,sigma)
+            elif distributions[i] == 'uniform':
+                (low, high) = arguments[i]
+                space[variable] = uniform(variable,low,high)
         return space
     
         
