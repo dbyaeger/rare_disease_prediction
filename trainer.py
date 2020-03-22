@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import joblib
 
-class TrainingMain():
+class Trainer():
     """Wrapper class for loading and preprocessing data, training a model,
     and saving the trained model with the parameters optimizied by cross-validation
     
