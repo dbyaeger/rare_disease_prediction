@@ -83,7 +83,7 @@ class Trainer():
         # Instantiate new bayesian optimizer
         bc = BayesianOptimizer(estimator = self.classifier, x = self.x, 
                                y = self.y, metric = self.metric,
-                               sampling_method = self.sampling_method,
+                               sampler = self.sampling_method,
                                savepath = savepath,
                                max_evals = self.max_evals, cv_fold = self.cv_fold,
                                variables = self.variables,
