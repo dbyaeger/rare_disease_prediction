@@ -10,11 +10,8 @@ from utils.dataset_helpers import dataset_preprocessing_and_partitioning
 from utils.feature_helpers import log_and_normalize_features
 from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import make_scorer
-from imblearn.under_sampling import OneSidedSelection
 from pathlib import Path
-from sklearn.svm import SVC
 import numpy as np
-import pandas as pd
 import joblib
 
 class Trainer():
@@ -43,8 +40,17 @@ class Trainer():
         arguments: arguments to each distribution-generating function as tuple
         variable_type: dictionary in which keys are variables and value is
             whether variable applies to estimator or sampler
+            
+    OUTPUTS:
+        Calling the train_and_save_model method will save a trained model
+        with name <model_name> in <save_model_path> and a .csv file with
+        the name <model_name> in <save_training_data_path> that shows the
+        output of the Bayesian optimizer during training. The saved model is
+        the model with the best parameters found by Bayesian optimization 
+        trained on all of the training data.
+                   
     """
-    def __init__(self, classifier = SVC, model_name: str = 'SVC_OneSidedSelection',
+    def __init__(self, classifier: callable, model_name: str,
                  sampling_method: callable = None, log_normalize: bool = True,
                 path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                 save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/results',

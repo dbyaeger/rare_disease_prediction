@@ -107,14 +107,26 @@ class BayesianOptimizer():
         """
         self.iteration += 1
         
+        if 'cost' in self.variable_type.values():
+            cost = params['cost']
+            del params['cost']
+            # minority class has label of +1
+            params['class_weight'] = {1: cost, -1: 1}
+        
         if 'sampler' not in self.variable_type.values():
+            # if no sampling parameters, no need to sample
             metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
         else:
+            # pull out sampler parameters
             sampler_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'sampler'}
+            # sample
             x,y = self.sampler(self.x, self.y, **sampler_params)
+            
+            # pull out estimator params
             estimator_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'estimator'}
+            
             metric_result = repeated_cross_val(self.estimator, x, y, **estimator_params)
         
         # make metric_result negative for optimization

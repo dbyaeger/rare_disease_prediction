@@ -6,10 +6,14 @@ Created on Sun Mar 22 14:40:19 2020
 @author: yaeger
 
 Wrapper functions for imblearn sampling strategies. Each wrapper instantiates
-the class and returns the resampling method
+the class(es), runs the resampling method, and returns the resampled array and
+labels.
 """
 import numpy as np
-from imblearn.under_sampling import TomekLinks, OneSidedSelection, RandomUnderSampler
+from imblearn.under_sampling import (TomekLinks, OneSidedSelection, 
+                                     RandomUnderSampler)
+
+from imblearn.over_sampling import (SMOTE, RandomOverSampler)
 
 def tomek_links(x: np.ndarray,y: np.ndarray):
     """Returns tomek resampled x and y for which majority class Tomek Link
@@ -24,7 +28,7 @@ def one_sided_selection(x: np.ndarray,y: np.ndarray):
     have also been culled.
     """
     oss = OneSidedSelection(n_jobs=4)
-    oss.fit_resample(x,y)
+    return oss.fit_resample(x,y)
     
 def random_undersample(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
     """Returns array and labels for which the majority class of the input
@@ -33,4 +37,44 @@ def random_undersample(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
     samples in the majority class.
     """
     rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
-    rus.fit_resample(x,y)
+    return rus.fit_resample(x,y)
+
+def smote(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
+    """Returns array and labels for which the minority class of the input
+    array has been randomly oversampled using SMOTE technique. sampling_strategy 
+    specifies the desired ratio of the number of samples in the minority class 
+    over the number of samples in the majority class.
+    """
+    sm = SMOTE(sampling_strategy=sampling_strategy)
+    return sm.fit_resample(x,y)
+
+def random_undersample_smote(x: np.ndarray,y: np.ndarray, 
+                             sampling_strategy_1:float, sampling_strategy_2:float,
+                             epsilon: float = 0.1):
+    """Returns array and labels for which the majority class of the input
+    array has been randomly undersampled and then the minority class has been
+    randomly oversampled using SMOTE technique. sampling_strategy_1
+    specifies the desired ratio of the number of samples in the minority class 
+    over the number of samples in the majority class after random_undersampling,
+    and sampling_strategy_2 specifies the ratio after SMOTE. In case 
+    sampling_strategy_2 <= sampling_strategy_1, sampling_strategy_2 will be changed
+    to sampling_strategy_1 + epsilon
+    """
+    if sampling_strategy_2 <= sampling_strategy_1:
+        sampling_strategy_2 = sampling_strategy_1 + epsilon
+    
+    rus = RandomUnderSampler(sampling_strategy=sampling_strategy_1)
+    x, y = rus.fit_resample(x,y)
+    sm = SMOTE(sampling_strategy=sampling_strategy_2)
+    return sm.fit_resample(x,y)
+
+def random_oversample(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
+    """Returns array and labels for which the minority class of the input
+    array has been randomly oversampled. sampling_strategy specifies the desired
+    ratio of the number of samples in the minority class over the number of 
+    samples in the majority class.
+    """
+    ros = RandomOverSampler(sampling_strategy=sampling_strategy)
+    return ros.fit_resample(x, y)
+    
+    
