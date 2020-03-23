@@ -65,8 +65,10 @@ class Trainer():
         
         self.classifier = classifier
         self.model_name = model_name
-        self.save_training_data_path = self.convert_to_path(save_training_data_path)
-        self.save_model_path = self.convert_to_path(save_model_path)
+        self.save_training_data_path = self.convert_to_path(save_training_data_path,
+                                                            make_directory = True)
+        self.save_model_path = self.convert_to_path(save_model_path,
+                                                    make_directory = True)
         self.metric = metric
         self.sampling_method = sampling_method
         self.max_evals = max_evals
@@ -76,7 +78,8 @@ class Trainer():
         self.distributions = distributions
         self.arguments = arguments
         self.variable_type = variable_type
-        self.x, self.y = self.load_data(self.convert_to_path(path_to_data), 
+        self.x, self.y = self.load_data(self.convert_to_path(path_to_data,
+                                        make_directory = False), 
                                         log_normalize)
     
     def train_and_save_model(self):
@@ -153,12 +156,15 @@ class Trainer():
         return x,y
  
     @staticmethod
-    def convert_to_path(path: str):
-        """Checks the type of path and converts to Path type if is not of type
-        Path.
-        """
-        if not isinstance(path, Path):
-            return Path(path)
+    def convert_to_path(path: str, make_directory: bool = True):
+        """Converts an input string to path and creates the directory if it
+        does not already exist"""
+        if not isinstance(path, Path): path = Path(path)
+        
+        if make_directory:
+            if not path.is_dir():
+                path.mkdir()
+        
         return path
 
 
