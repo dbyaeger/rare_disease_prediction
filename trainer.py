@@ -50,12 +50,11 @@ class Trainer():
         trained on all of the training data.
                    
     """
-    def __init__(self, classifier: callable, model_name: str,
+    def __init__(self, classifier: callable, model_name: str, metric: callable,
                  sampling_method: callable = None, log_normalize: bool = True,
                 path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                 save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/results',
                 save_model_path: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
-                metric: callable = make_scorer(geometric_mean_score),
                 max_evals: int = 200,
                 repetitions: int = 5, cv_fold: int = 2,
                 variables: list = ['C', 'gamma'],
@@ -115,10 +114,9 @@ class Trainer():
             print(f'best value of {param}: {best_params[param]}')
         
         # Retrain model using best parameters
-        classifer = self.classifier(**best_params)
-        classifer.fit(self.x, self.y)
+        classifer = bc.train_and_return_model(best_params)
         print(f'Value of metric on entire train set for best model: \
-              {geometric_mean_score(self.y,classifer.predict(self.x))}')
+              {self.metric(self.y,classifer.predict(self.x))}')
         
         # Save model
         savepath = self.save_model_path.joinpath(self.model_name)

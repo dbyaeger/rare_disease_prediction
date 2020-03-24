@@ -12,7 +12,7 @@ from sklearn.model_selection import cross_val_score
 from hyperopt import STATUS_OK
 from sklearn.svm import SVC
 import csv
-from hyperopt.hp import lognormal, loguniform, uniform
+from hyperopt.hp import lognormal, loguniform, uniform, quniform
 from pathlib import Path
 from hyperopt import Trials, tpe, fmin
 
@@ -100,33 +100,20 @@ class BayesianOptimizer():
         if self.sampler is not None:
             if 'sampler' not in self.variable_type.values():
                 self.x, self.y = self.sampler(self.x, self.y)
-            
+           
         
     def objective(self, params):
         """Objective function for Hyperparameter optimization
         """
         self.iteration += 1
         
-        if 'cost' in self.variable_type.values():
-            cost = params['cost']
-            del params['cost']
-            # minority class has label of +1
-            params['class_weight'] = {1: cost, -1: 1}
+        sampler_params, estimator_params = self._sort_params()
         
-        if 'sampler' not in self.variable_type.values():
+        if not sampler_params:
             # if no sampling parameters, no need to sample
             metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
         else:
-            # pull out sampler parameters
-            sampler_params = {param: params[param] for param in params if \
-                              self.variable_type[param] == 'sampler'}
-            # sample
-            x,y = self.sampler(self.x, self.y, **sampler_params)
-            
-            # pull out estimator params
-            estimator_params = {param: params[param] for param in params if \
-                              self.variable_type[param] == 'estimator'}
-            
+            x,y = self.sampler(self.x, self.y, **sampler_params)            
             metric_result = repeated_cross_val(self.estimator, x, y, **estimator_params)
         
         # make metric_result negative for optimization
@@ -140,6 +127,43 @@ class BayesianOptimizer():
         return {'loss': loss, 'params': params, 'iteration': self.iteration,
                 'status': STATUS_OK}
     
+    def _sort_params(self, params, majority_class: int = -1, minority_class: int = 1):
+        """Separates parameters into parameters for sampling method and those
+        for estimator. Returns sampler_params and estimator_params. Also handles
+        cost parameter.
+        """
+        
+        if 'cost' in params:
+            cost = params['cost']
+            del params['cost']
+            # minority class has label of +1
+            params['class_weight'] = {minority_class: cost, 
+                                      majority_class: 1}
+        
+        sampler_params = {param: params[param] for param in params if \
+                              self.variable_type[param] == 'sampler'}
+        
+        estimator_params = {param: params[param] for param in params if \
+                              self.variable_type[param] == 'estimator'}
+        
+        return sampler_params, estimator_params
+        
+
+    def train_and_return_model(self, params):
+        """Method to train model on full dataset with selected parameters,
+        evaluate metric on training set, and return the model.
+        """
+        sampler_params, estimator_params = self._sort_params()
+        classifier = self.estimator(**estimator_params)
+        if not sampler_params:
+            # if no sampling parameters, no need to sample
+            classifier.fit(self.x,self.y)
+        else:
+            x,y = self.sampler(self.x, self.y, **sampler_params)            
+            classifier.fit(x,y)
+        
+        return classifier
+           
     def optimize_params(self):
         """ Wrapper method for fmin function in hyperopt package 
         """
@@ -181,6 +205,9 @@ class BayesianOptimizer():
             elif distributions[i] == 'uniform':
                 (low, high) = arguments[i]
                 space[variable] = uniform(variable,low,high)
+            elif distributions[i] == 'quniform':
+                (low, high, q) = arguments[i]
+                space[variable] = quniform(variable,low,high,q)
         return space
     
         

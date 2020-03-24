@@ -9,6 +9,7 @@ Set of functions and commands to create, run, and save each model.
 """
 
 from sklearn.svm import SVC
+from instance_methods.InstanceMethods import FaultDetectionKNN
 from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import make_scorer, average_precision_score
 from model_parameters.sampling_functions import (tomek_links, one_sided_selection, 
@@ -62,7 +63,7 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersamp
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for simple random oversampling
-svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
+svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
               'sampling_method': random_oversample,
               'log_normalize': True, 
               'variables': ['sampling_strategy','C', 'gamma'],
@@ -70,7 +71,6 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversampl
               'arguments': [(0,1),(0, 100),(1e-3,3)], 
               'variable_type': {'sampling_strategy': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
-
 
 # params for adjusting class weights
 svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs', 
@@ -116,10 +116,28 @@ svc_random_undersample_smote = {'classifier': SVC,
                                 'sampling_strategy_2': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
+# params for fault detection-KNN
+fd_knn = {'classifier': FaultDetectionKNN, 
+          'model_name': 'Fault_Detection_KNN', 
+          'sampling_method': None,
+          'log_normalize': True, 
+          'variables': ['k','alpha'],
+          'distributions': ['quniform','uniform'],
+          'arguments': [(2,1000,1),(0,0.01)], 
+          'variable_type': {'k': 'estimator', 'alpha': 'estimator'}}
 
 
-def make_model_param_list(input_list: list = [svc,svc_tomek_links,svc_one_sided,
-                                              svc_random_undersample],
+
+
+
+def make_model_param_list(input_list: list = [svc,svc_tomek_links,
+                                              svc_one_sided,
+                                              svc_random_undersample,
+                                              svc_random_oversample,
+                                              svc_cost,
+                                              svc_SMOTE,
+                                              svc_SMOTE_cost,
+                                              svc_random_undersample_smote],
                     common_params: dict = common_params):
     for model_param in input_list: model_param.update(common_params)
     return input_list

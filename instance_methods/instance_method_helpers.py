@@ -32,18 +32,15 @@ def kNN_distances(array_to_score: np.ndarray, reference_array: np.ndarray, k: in
         """Finds sum-of-square distance to k nearest neighbors for samples in
         array_to_score relative to observations in reference_array. Returns an 
         array of sum-of-square distances in the same order as the samples in 
-        array_to_score. 
+        array_to_score. Ignores identical rows with the same row index when
+        calculating the sum-of-square distance. 
         """
-        # The same array may be passed as reference and array_to_score, in which
-        # case we will ignore identical rows
-        same_array = np.array_equal(array_to_score, reference_array)
-        
         sum_of_square_distances = np.zeros(array_to_score.shape[0])
         for i, sample in enumerate(array_to_score):
             k_vec = np.ones(k)*np.inf
-            for row in reference_array:
-                # don't use identical observations if arrays are identical
-                if same_array:
+            for j, row in enumerate(reference_array):
+                # If i==j and rows are identical, skip the row
+                if i == j:
                     if (row == sample).all(): continue
                 
                 # Update k vector based on distance to training observation
