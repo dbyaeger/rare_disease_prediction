@@ -5,7 +5,7 @@ Created on Mon Mar 23 12:31:20 2020
 
 @author: danielyaeger
 """
-from instance_method_helpers import kNN_distances
+from instance_methods.instance_method_helpers import kNN_distances
 import numpy as np
 
 class FaultDetectionKNN():

@@ -107,7 +107,7 @@ class BayesianOptimizer():
         """
         self.iteration += 1
         
-        sampler_params, estimator_params = self._sort_params()
+        sampler_params, estimator_params = self._sort_params(params)
         
         if not sampler_params:
             # if no sampling parameters, no need to sample
@@ -153,7 +153,7 @@ class BayesianOptimizer():
         """Method to train model on full dataset with selected parameters,
         evaluate metric on training set, and return the model.
         """
-        sampler_params, estimator_params = self._sort_params()
+        sampler_params, estimator_params = self._sort_params(params)
         classifier = self.estimator(**estimator_params)
         if not sampler_params:
             # if no sampling parameters, no need to sample
