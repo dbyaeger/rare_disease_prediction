@@ -44,7 +44,7 @@ def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/D
     no_porph_patients = pd.concat(no_porph_patients)
     
     # Annotate with mention of Porphryia data
-    no_porph_patients['Porp_mention'] = pd.Series(['No']*len(no_porph_patients),
+    no_porph_patients['Porph_mention'] = pd.Series(['No']*len(no_porph_patients),
                                             index = no_porph_patients.index)
     
     # Get 100 Patients manually reviewed with Porphyria mention
@@ -59,7 +59,7 @@ def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/D
     porph_patients = pd.concat(porph_patients)
     
     # Annotate with mention of Porphryia data
-    porph_patients['Porp_mention'] = pd.Series(['Yes']*len(porph_patients),
+    porph_patients['Porph_mention'] = pd.Series(['Yes']*len(porph_patients),
                                             index = porph_patients.index)
     # Combine Porph and No Porph dataframes
     annotated_patients = [porph_patients, no_porph_patients]
@@ -80,6 +80,10 @@ def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/D
     
     # Inner join with training data
     annotated_patients = pd.merge(annotated_patients,all_ID_df,how = 'inner', on = 'ZCODE')
+    
+    # Fix some spelling errors
+    annotated_patients = annotated_patients.replace({'Category': 'Possilbe'},'Possible')
+    annotated_patients = annotated_patients.replace({'Category': ['Unlikley', 'Unlikely ', 'Unlikely, unknown', 'Unlikly']}, 'Unlikely') 
     
     return annotated_patients
 
@@ -150,8 +154,30 @@ def dataset_preprocessing_and_partitioning(path: Path = Path('/Users/yaeger/Docu
     training_data = remove_holdout_set_from_training_set(labeled_data, holdout_set)
     
     return holdout_set, training_data
+
+def make_test_set(holdout_set: pd.DataFrame):
+    """Takes the holdout set as input and creates the test set by:
+        
+        1) Deleting patients with 'Yes' mention of Porphyria, but for whom
+        'Category' field is Possible. These patients had only an incidental
+        mention of Porphyria in their notes.
+        
+        2) Deleting deceased patients.
+        
+        returns the transformed data frame.
+    """
     
+    no_porph_mention_living = holdout_set[(holdout_set['Porph_mention'] == 'No') \
+                                          & (holdout_set['Category'] != 'Deceased')]
     
+    yes_porph_mention_possible = holdout_set[(holdout_set['Porph_mention'] == 'Yes') \
+                                          & (holdout_set['Category'] == 'Possible')]
+    
+    unlabeled = holdout_set[holdout_set['Porph_mention'].isnull()]
+    unlabeled = unlabeled.replace({'Category': np.nan}, 'Unlikely')
+
+    test_set = [no_porph_mention_living, yes_porph_mention_possible, unlabeled]
+    return pd.concat(test_set,ignore_index=True)
     
     
     

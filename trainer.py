@@ -126,7 +126,7 @@ class Trainer():
     def load_data(path_to_data: Path, log_normalize: bool = True, meta_data_columns: 
                                             list = ['ID','ZCODE','AIP_Diagnosis',
                                                     'Patient ID', 'Category',
-                                                    'Porp_mention', 
+                                                    'Porph_mention', 
                                                     'ABDOMINAL_PAIN_DX_NAME']):
         """Loads training data using the specified path. If log_normalize is
         set to True, log_normalizes the data. Removes metadata columns from

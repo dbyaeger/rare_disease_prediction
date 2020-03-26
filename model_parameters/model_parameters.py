@@ -137,7 +137,8 @@ def make_model_param_list(input_list: list = [svc,svc_tomek_links,
                                               svc_cost,
                                               svc_SMOTE,
                                               svc_SMOTE_cost,
-                                              svc_random_undersample_smote],
+                                              svc_random_undersample_smote,
+                                              fd_knn],
                     common_params: dict = common_params):
     for model_param in input_list: model_param.update(common_params)
     return input_list
