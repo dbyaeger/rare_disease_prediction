@@ -116,7 +116,7 @@ class Trainer():
         # Retrain model using best parameters
         classifer = bc.train_and_return_model(best_params)
         print(f'Value of metric on entire train set for best model: \
-              {self.metric(self.y,classifer.predict(self.x))}')
+              {self.metric(classifer,self.x,self.y)}')
         
         # Save model
         savepath = self.save_model_path.joinpath(self.model_name)
