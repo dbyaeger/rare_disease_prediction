@@ -19,7 +19,7 @@ from model_parameters.sampling_functions import (tomek_links, one_sided_selectio
 
 # parameters common to all models
 common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
-                 'save_training_data_path': '/Users/yaeger/Documents/Modules/Porphyria/results',
+                 'save_training_data_path': '/Users/yaeger/Documents/Modules/Porphyria/results/training',
                  'save_model_path': '/Users/yaeger/Documents/Modules/Porphyria/models',
                  'metric': make_scorer(average_precision_score,needs_threshold=True),
                  'max_evals': 50,

@@ -54,7 +54,7 @@ class Trainer():
     def __init__(self, classifier: callable, model_name: str, metric: callable,
                  sampling_method: callable = None, log_normalize: bool = True,
                 path_to_data: str = '/Users/yaeger/Documents/Porphyria',
-                save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/training_results',
+                save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/results/training',
                 save_model_path: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
                 max_evals: int = 200,
                 repetitions: int = 5, cv_fold: int = 2,

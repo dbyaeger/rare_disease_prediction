@@ -33,7 +33,8 @@ class Tester():
     """
     def __init__(self, path_to_data: str, metrics: list, model_path: str = None):
         
-        self.model_path = self.convert_to_path(model_path, make_directory = False)
+        if model_path is not None:
+            self.model_path = self.convert_to_path(model_path, make_directory = False)
         
         self.path_to_data = self.convert_to_path(path_to_data, make_directory = False)
                 
