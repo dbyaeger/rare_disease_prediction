@@ -12,6 +12,7 @@ from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import make_scorer
 from pathlib import Path
 import numpy as np
+import re
 import joblib
 
 class Trainer():
@@ -53,7 +54,7 @@ class Trainer():
     def __init__(self, classifier: callable, model_name: str, metric: callable,
                  sampling_method: callable = None, log_normalize: bool = True,
                 path_to_data: str = '/Users/yaeger/Documents/Porphyria',
-                save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/results',
+                save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/training_results',
                 save_model_path: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
                 max_evals: int = 200,
                 repetitions: int = 5, cv_fold: int = 2,
@@ -80,6 +81,7 @@ class Trainer():
         self.x, self.y = self.load_data(self.convert_to_path(path_to_data,
                                         make_directory = False), 
                                         log_normalize)
+        self.log_normalize = log_normalize
     
     def train_and_save_model(self):
         """ Wrapper method to find the best parameters, retrain model using the
@@ -118,9 +120,16 @@ class Trainer():
         print(f'Value of metric on entire train set for best model: \
               {self.metric(classifer,self.x,self.y)}')
         
-        # Save model
+        # Get training parameters
+        training_params = self.make_param_dict(best_params)
+        
+        # Store training_params and model in dict for saving
+        model_and_parameters = {'model': classifer,
+                                'training_parameters': training_params}
+        
+        # Save model and training parameters
         savepath = self.save_model_path.joinpath(self.model_name)
-        joblib.dump(classifer, savepath)
+        joblib.dump(model_and_parameters, savepath)
     
     @staticmethod
     def load_data(path_to_data: Path, log_normalize: bool = True, meta_data_columns: 
@@ -133,10 +142,10 @@ class Trainer():
         data and returns training data and training labels as numpy arrays.
         """
         # Get training data
-        holdout_set, training_data = dataset_preprocessing_and_partitioning(path_to_data)
+        _, training_data = dataset_preprocessing_and_partitioning(path_to_data)
         
         # Make y
-        y = np.array(training_data['AIP_Diagnosis'])
+        y = training_data['AIP_Diagnosis'].to_numpy()
         
         # Remove metadata columns from training_data
         columns_to_remove = []
@@ -152,6 +161,25 @@ class Trainer():
         x = training_data.to_numpy()
         
         return x,y
+    
+    def make_param_dict(self, best_params):
+        """ Creates and returns a dictionary of the parameters used when in
+        training."""
+        param_dict = {'metric': re.findall(r'\((.*)\)',str(self.metric))[0],
+                      'model_name': self.model_name,
+                      'log_normalize': self.log_normalize,
+                      'sampling_method': re.findall(r'function (.*) at', str(self.sampling_method))[0],
+                      'max_evals': self.max_evals,
+                      'classifier': type(self.classifier),
+                      'repetitions': self.repetitions,
+                      'cv_fold': self.cv_fold,
+                      'variables': self.variables,
+                      'distributions': self.distributions,
+                      'arguments': self.arguments,
+                      'variable_type': self.variable_type}
+        
+        param_dict.update(best_params)
+        return param_dict
  
     @staticmethod
     def convert_to_path(path: str, make_directory: bool = True):

@@ -62,16 +62,6 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersamp
               'variable_type': {'sampling_strategy': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
-# params for simple random oversampling
-svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
-              'sampling_method': random_oversample,
-              'log_normalize': True, 
-              'variables': ['sampling_strategy','C', 'gamma'],
-              'distributions': ['uniform','uniform','loguniform'],
-              'arguments': [(0,1),(0, 100),(1e-3,3)], 
-              'variable_type': {'sampling_strategy': 'sampler',
-                                'C':'estimator','gamma':'estimator'}}
-
 # params for adjusting class weights
 svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs', 
               'sampling_method': None,
@@ -126,6 +116,27 @@ fd_knn = {'classifier': FaultDetectionKNN,
           'arguments': [(2,1000,1),(0,0.01)], 
           'variable_type': {'k': 'estimator', 'alpha': 'estimator'}}
 
+# params for random undersample and cost
+svc_random_undersample_cost = {'classifier': SVC, 
+              'model_name': 'SVC_Random_Undersample_Different_Costs', 
+              'sampling_method': random_undersample,
+              'log_normalize': True, 
+              'variables': ['cost','C', 'gamma', 'sampling_strategy'],
+              'distributions': ['uniform','uniform','loguniform','uniform'],
+              'arguments': [(1,1e6),(0, 100),(1e-3,3),(0,1)], 
+              'variable_type': {'cost': 'estimator',
+                                'C':'estimator','gamma':'estimator',
+                                'sampling_strategy': 'sampler'}}
+
+# params for simple random oversampling
+svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
+              'sampling_method': random_oversample,
+              'log_normalize': True, 
+              'variables': ['sampling_strategy','C', 'gamma'],
+              'distributions': ['uniform','uniform','loguniform'],
+              'arguments': [(0,1),(0, 100),(1e-3,3)], 
+              'variable_type': {'sampling_strategy': 'sampler',
+                                'C':'estimator','gamma':'estimator'}}
 
 
 
@@ -133,12 +144,13 @@ fd_knn = {'classifier': FaultDetectionKNN,
 def make_model_param_list(input_list: list = [svc,svc_tomek_links,
                                               svc_one_sided,
                                               svc_random_undersample,
-                                              svc_random_oversample,
+                                              svc_random_undersample_cost,
                                               svc_cost,
                                               svc_SMOTE,
                                               svc_SMOTE_cost,
                                               svc_random_undersample_smote,
-                                              fd_knn],
+                                              fd_knn,
+                                              svc_random_oversample],
                     common_params: dict = common_params):
     for model_param in input_list: model_param.update(common_params)
     return input_list

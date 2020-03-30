@@ -15,10 +15,7 @@ def update_kvec(k_vec: np.ndarray, dist: float, k: int):
         # if distance greater than final entry, return array
         if dist > k_vec[-1]:
             return k_vec
-        elif dist < k_vec[0]:
-            k_vec = np.roll(k_vec,1)
-            k_vec[0] = dist
-        elif k_vec[0] < dist < k_vec[-1]:
+        elif dist < k_vec[-1]:
             index = np.searchsorted(k_vec,dist)
             if index == (k-1):
                 k_vec[-1] = dist
@@ -27,13 +24,13 @@ def update_kvec(k_vec: np.ndarray, dist: float, k: int):
                 k_vec[index] = dist
         return k_vec
 
-@njit 
+@njit
 def kNN_distances(array_to_score: np.ndarray, reference_array: np.ndarray, k: int):
         """Finds sum-of-square distance to k nearest neighbors for samples in
-        array_to_score relative to observations in reference_array. Returns an 
-        array of sum-of-square distances in the same order as the samples in 
+        array_to_score relative to observations in reference_array. Returns an
+        array of sum-of-square distances in the same order as the samples in
         array_to_score. Ignores identical rows with the same row index when
-        calculating the sum-of-square distance. 
+        calculating the sum-of-square distance.
         """
         sum_of_square_distances = np.zeros(array_to_score.shape[0])
         for i, sample in enumerate(array_to_score):
@@ -42,7 +39,7 @@ def kNN_distances(array_to_score: np.ndarray, reference_array: np.ndarray, k: in
                 # If i==j and rows are identical, skip the row
                 if i == j:
                     if (row == sample).all(): continue
-                
+
                 # Update k vector based on distance to training observation
                 k_vec = update_kvec(k_vec = k_vec, dist = np.linalg.norm(sample-row),
                                     k = k)
