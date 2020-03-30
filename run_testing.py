@@ -17,7 +17,7 @@ import re
 
 def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria/csvs',
                 path_to_models: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
-                save_directory: str = '/Users/yaeger/Documents/Modules/Porphyria/results/training',
+                save_directory: str = '/Users/yaeger/Documents/Modules/Porphyria/results/testing',
                 metrics: list = [geometric_mean_score, f1_score, average_precision_score,
                                  roc_auc_score, recall_score, precision_score,
                                  balanced_accuracy_score],
@@ -72,6 +72,9 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria/csvs',
         with save_path.open('a') as fh:
             writer = csv.writer(fh)
             writer.writerow([results_dict[name] for name in metric_names])
+
+if __name__ == "__main__":
+    run_testing()
 
     
     
