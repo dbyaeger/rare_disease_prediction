@@ -168,7 +168,6 @@ class Trainer():
         param_dict = {'metric': re.findall(r'\((.*)\)',str(self.metric))[0],
                       'model_name': self.model_name,
                       'log_normalize': self.log_normalize,
-                      'sampling_method': re.findall(r'function (.*) at', str(self.sampling_method))[0],
                       'max_evals': self.max_evals,
                       'classifier': type(self.classifier),
                       'repetitions': self.repetitions,
@@ -177,7 +176,13 @@ class Trainer():
                       'distributions': self.distributions,
                       'arguments': self.arguments,
                       'variable_type': self.variable_type}
-        
+        # Need a try-except block here because sometimes sampling method is None
+        try:
+            param_dict['sampling_method'] = re.findall(r'function (.*) at', \
+                      str(self.sampling_method))[0]
+        except:
+            param_dict['sampling_method'] = None
+            
         param_dict.update(best_params)
         return param_dict
  
