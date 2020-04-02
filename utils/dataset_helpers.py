@@ -8,6 +8,7 @@ Created on Mon Mar  2 14:54:05 2020
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from utils.feature_helpers import log_and_normalize_features
 
 def load_file(path: Path = Path('/Users/yaeger/Documents/Porphyria')):
     "Loads porphryia dataset and returns it as a dataframe"    
@@ -56,14 +57,14 @@ def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/D
     
     # Combine top and bottom 50 into a dataframe
     porph_patients = [porph_top50, porph_bottom50]
-    porph_patients = pd.concat(porph_patients)
+    porph_patients = pd.concat(porph_patients, ignore_index = True)
     
     # Annotate with mention of Porphryia data
     porph_patients['Porph_mention'] = pd.Series(['Yes']*len(porph_patients),
                                             index = porph_patients.index)
     # Combine Porph and No Porph dataframes
     annotated_patients = [porph_patients, no_porph_patients]
-    annotated_patients = pd.concat(annotated_patients)
+    annotated_patients = pd.concat(annotated_patients, ignore_index = True)
     
     
     # Rename Patient ID to ZCODE for merging purposes
@@ -93,12 +94,11 @@ def get_top_200_scoring_IDs(path: Path = Path('/Users/yaeger/Documents/Porphyria
     
     IDs = []
     
-    for i, file in enumerate(path.iterdir()):
-        
-        assert 'Porph' in file.name, f"File has name {file.name}!"
-        assert i < 4, "Expected only 4 files in directory!"
-        
-        with file.open('r') as fh:
+    for file_name in ['Top50ScoredNoPorph.csv', 
+                      'Second50ScoredNoPorph.csv',
+                      'Top50ScoredPorphNotesNoLab.csv', 
+                      'Second50PorphNotes80OthNoLab.csv']:    
+        with path.joinpath(file_name).open('r') as fh:
             data = pd.read_csv(fh)
         IDs.extend(data['Patient ID'].values)
     
@@ -155,7 +155,7 @@ def dataset_preprocessing_and_partitioning(path: Path = Path('/Users/yaeger/Docu
     
     return holdout_set, training_data
 
-def make_test_set(holdout_set: pd.DataFrame):
+def make_test_set(holdout_set: pd.DataFrame) -> pd.DataFrame:
     """Takes the holdout set as input and creates the test set by:
         
         1) Deleting patients with 'Yes' mention of Porphyria, but for whom
@@ -178,8 +178,31 @@ def make_test_set(holdout_set: pd.DataFrame):
 
     test_set = [no_porph_mention_living, yes_porph_mention_possible, unlabeled]
     return pd.concat(test_set,ignore_index=True)
+
+def get_training_x_and_y(training_data: pd.DataFrame, log_normalize: bool = True,
+                                 meta_data_columns: list = ['ID','ZCODE','AIP_Diagnosis',
+                                'Patient ID', 'Porph_mention', 'ABDOMINAL_PAIN_DX_NAME']): 
+    """Returns training data and labels as a numpy array. If log_normalize is
+    set to True, also log-normalizes the data.
+    """
     
+    # Make y
+    y = training_data['AIP_Diagnosis'].to_numpy()
     
+    # Remove metadata columns from training_data
+    columns_to_remove = []
+    for column in meta_data_columns:
+        if column in training_data.columns:
+            columns_to_remove.append(column)
+    
+    training_data = training_data.drop(columns = columns_to_remove)
+    
+    if log_normalize:
+        training_data = log_and_normalize_features(training_data)
+    
+    x = training_data.to_numpy()
+    
+    return x,y
     
     
     

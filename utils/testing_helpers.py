@@ -32,6 +32,8 @@ def proportion_correctly_ranked(y_pred, y_true_labels,
 
     Returns the total proportion of correctly ranked pairs.
     """
+    # 
+    
     # Check to make sure that all classes in label_map are in y_true_labels
     for key in label_map:
         assert key in y_true_labels, f'Class {key} in label_map but not in y_true_labels!'
@@ -41,7 +43,7 @@ def proportion_correctly_ranked(y_pred, y_true_labels,
     for key_1 in label_map:
         for key_2 in label_map:
             if label_map[key_1] < label_map[key_2]:
-                possible_correct += y_true_labels.count(key_1)*y_true_labels.count(key_2)
+                possible_correct += list(y_true_labels).count(key_1)*list(y_true_labels).count(key_2)
 
     # Find the total number of correctly ranked pairs
     actual_correct = 0

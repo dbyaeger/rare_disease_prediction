@@ -22,7 +22,7 @@ common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
                  'save_training_data_path': '/Users/yaeger/Documents/Modules/Porphyria/results/training',
                  'save_model_path': '/Users/yaeger/Documents/Modules/Porphyria/models',
                  'metric': make_scorer(average_precision_score,needs_threshold=True),
-                 'max_evals': 50,
+                 'max_evals': 100,
                  'repetitions': 5,
                  'cv_fold': 2}
 

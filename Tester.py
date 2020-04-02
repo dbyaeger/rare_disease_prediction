@@ -43,7 +43,7 @@ class Tester():
             
         self.metrics = list(map(make_scorer,metrics))
         
-        self.x, self.y = self.load_data(self.path_to_data)
+        self.x, self.y, self.zcodes = self.load_data(self.path_to_data)
     
     def evaluate_model(self, model_name: str):
         """ Loads the model, log transforms the data if required for the specific
@@ -102,7 +102,8 @@ class Tester():
                                              'Porph_mention', 
                                              'ABDOMINAL_PAIN_DX_NAME']):
         """Loads test data using the specified path. Removes metadata columns 
-        from test data and returns test data and test labels as numpy arrays.
+        from test data and returns test data, test labels, and z codes
+        as numpy arrays.
         """
         holdout_set, _ = dataset_preprocessing_and_partitioning(path_to_data)
         
@@ -111,6 +112,9 @@ class Tester():
         
         # Set categories as y labels
         y = test_set['Category'].to_numpy()
+        
+        # Get ZCODES
+        zcodes = test_set['ZCODE'].to_numpy()
         
         # Remove metadata columns from training_data
         columns_to_remove = []
@@ -122,8 +126,12 @@ class Tester():
         
         x = test_set.to_numpy()
         
-        return x,y
+        return x,y, zcodes
         
+    @property
+    def get_zcodes(self):
+        """Returns the zcodes in the test set"""
+        return self.zcodes
     
     @staticmethod
     def convert_to_path(path: str, make_directory: bool = True):
