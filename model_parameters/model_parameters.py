@@ -66,10 +66,10 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersamp
 svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs', 
               'sampling_method': None,
               'log_normalize': True, 
-              'variables': ['cost','C', 'gamma'],
+              'variables': ['class_weight','C', 'gamma'],
               'distributions': ['uniform','uniform','loguniform'],
               'arguments': [(1,1e6),(0, 100),(1e-3,3)], 
-              'variable_type': {'cost': 'estimator',
+              'variable_type': {'class_weight': 'estimator',
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for SMOTE with no undersampling of majority class
@@ -86,12 +86,12 @@ svc_SMOTE = {'classifier': SVC, 'model_name': 'SVC_SMOTE',
 svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs', 
               'sampling_method': smote,
               'log_normalize': True, 
-              'variables': ['sampling_strategy','C', 'gamma','cost'],
+              'variables': ['sampling_strategy','C', 'gamma','class_weight'],
               'distributions': ['uniform','uniform','loguniform','uniform'],
               'arguments': [(0,1),(0, 100),(1e-3,3), (0,1e6)], 
               'variable_type': {'sampling_strategy': 'sampler',
                                 'C':'estimator','gamma':'estimator',
-                                'cost': 'estimator'}}
+                                'class_weight': 'estimator'}}
 
 # params for random_undersample followed by SMOTE
 svc_random_undersample_smote = {'classifier': SVC, 
@@ -121,10 +121,10 @@ svc_random_undersample_cost = {'classifier': SVC,
               'model_name': 'SVC_Random_Undersample_Different_Costs', 
               'sampling_method': random_undersample,
               'log_normalize': True, 
-              'variables': ['cost','C', 'gamma', 'sampling_strategy'],
+              'variables': ['class_weight','C', 'gamma', 'sampling_strategy'],
               'distributions': ['uniform','uniform','loguniform','uniform'],
               'arguments': [(1,1e6),(0, 100),(1e-3,3),(0,1)], 
-              'variable_type': {'cost': 'estimator',
+              'variable_type': {'class_weight': 'estimator',
                                 'C':'estimator','gamma':'estimator',
                                 'sampling_strategy': 'sampler'}}
 
@@ -141,10 +141,10 @@ svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample
 
 
 
-def make_model_param_list(input_list: list = [svc,svc_tomek_links,
-                                              svc_one_sided,
-                                              svc_random_undersample,
-                                              svc_random_undersample_cost,
+def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
+                                              #svc_one_sided,
+                                              #svc_random_undersample,
+                                              #svc_random_undersample_cost,
                                               svc_cost,
                                               svc_SMOTE,
                                               svc_SMOTE_cost,

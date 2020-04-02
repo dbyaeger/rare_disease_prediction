@@ -32,7 +32,7 @@ def update_Kvec_Kindices(K_vec: np.ndarray, K_indices: np.ndarray, dist: float,
         distances to the K nearest neighbors and the indices of the closest
         K neighbors based on the new distance dist from neighbor new_neighbor. 
         Returns K_vec and K_indices."""
-        # if distance greater than final entry, return array
+        # if distance greater than final entry, return orginal arrays
         if dist > K_vec[-1]:
             return K_vec, K_indices
         elif dist < K_vec[-1]:

@@ -127,18 +127,17 @@ class BayesianOptimizer():
         return {'loss': loss, 'params': params, 'iteration': self.iteration,
                 'status': STATUS_OK}
     
-    def _sort_params(self, params, majority_class: int = -1, minority_class: int = 1):
+    def _sort_params(self, params, dictionize_cost: bool = True,
+                     majority_class: int = -1, minority_class: int = 1):
         """Separates parameters into parameters for sampling method and those
         for estimator. Returns sampler_params and estimator_params. Also handles
         cost parameter.
         """
-        
-        if 'cost' in params:
-            cost = params['cost']
-            del params['cost']
-            # minority class has label of +1
-            params['class_weight'] = {minority_class: cost, 
-                                      majority_class: 1}
+        if dictionize_cost:
+            if 'class_weight' in params:
+                # minority class has label of +1. Class weights must be in the form of a dictionary
+                params['class_weight'] = {minority_class: params['class_weight'], 
+                                          majority_class: 1}
         
         sampler_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'sampler'}
@@ -153,7 +152,7 @@ class BayesianOptimizer():
         """Method to train model on full dataset with selected parameters,
         evaluate metric on training set, and return the model.
         """
-        sampler_params, estimator_params = self._sort_params(params)
+        sampler_params, estimator_params = self._sort_params(params, dictionize_cost = False)
         classifier = self.estimator(**estimator_params)
         if not sampler_params:
             # if no sampling parameters, no need to sample
