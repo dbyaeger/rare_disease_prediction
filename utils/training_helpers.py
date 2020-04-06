@@ -65,6 +65,7 @@ class BayesianOptimizer():
     """
     def __init__(self: callable, estimator, x: np.ndarray, y: np.ndarray,
                  sampler: callable = None,
+                 preprocessor: callable = None,
                  metric: callable = make_scorer(geometric_mean_score),
                  savepath: str = '/Users/yaeger/Documents/Modules/Porphyria/results/test',
                  max_evals: int = 50,
@@ -74,6 +75,7 @@ class BayesianOptimizer():
                  arguments: list = [(0.1, 10),(1e-6,2)],
                  variable_type: dict = {'C':'estimator','gamma':'estimator'}):
         self.sampler = sampler
+        self.preprocessor = preprocessor
         self.x = x
         self.y = y
         self.estimator = estimator
@@ -107,13 +109,18 @@ class BayesianOptimizer():
         """
         self.iteration += 1
         
-        sampler_params, estimator_params = self._sort_params(params)
+        preprocessing_params, sampler_params, estimator_params = self._sort_params(params)
         
+        x, y = self.x, self.y
+        
+        if preprocessing_params:
+            x, y = self.preprocessor(x, y, **preprocessing_params)
+            
         if not sampler_params:
             # if no sampling parameters, no need to sample
-            metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
+            metric_result = repeated_cross_val(self.estimator, x, y, **params)
         else:
-            x,y = self.sampler(self.x, self.y, **sampler_params)            
+            x,y = self.sampler(x, y, **sampler_params)            
             metric_result = repeated_cross_val(self.estimator, x, y, **estimator_params)
         
         # make metric_result negative for optimization
@@ -139,26 +146,34 @@ class BayesianOptimizer():
                 params['class_weight'] = {minority_class: params['class_weight'], 
                                           majority_class: 1}
         
+        preprocessing_params = {param: params[param] for param in params if \
+                              self.variable_type[param] == 'preprocessing'}
+        
         sampler_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'sampler'}
         
         estimator_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'estimator'}
         
-        return sampler_params, estimator_params
+        return preprocessing_params, sampler_params, estimator_params
         
 
     def train_and_return_model(self, params):
         """Method to train model on full dataset with selected parameters,
         evaluate metric on training set, and return the model.
         """
-        sampler_params, estimator_params = self._sort_params(params, dictionize_cost = False)
+        x,y = self.x, self.y
+        preprocessing_params, sampler_params, estimator_params = self._sort_params(params, dictionize_cost = False)
         classifier = self.estimator(**estimator_params)
+        
+        if preprocessing_params:
+            x, y = self.preprocessor(x, y, **preprocessing_params)
+        
         if not sampler_params:
             # if no sampling parameters, no need to sample
-            classifier.fit(self.x,self.y)
+            classifier.fit(x,y)
         else:
-            x,y = self.sampler(self.x, self.y, **sampler_params)            
+            x,y = self.sampler(x, y, **sampler_params)            
             classifier.fit(x,y)
         
         return classifier

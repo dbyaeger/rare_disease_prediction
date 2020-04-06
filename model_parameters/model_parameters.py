@@ -28,6 +28,7 @@ common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
 
 # params for SVC with no sampling strategy
 svc = {'classifier': SVC, 'model_name': 'SVC', 'sampling_method': None,
+              'preprocessing_method': None,
               'log_normalize': True, 
               'variables': ['C', 'gamma'],
               'distributions': ['uniform','loguniform'],
@@ -35,7 +36,8 @@ svc = {'classifier': SVC, 'model_name': 'SVC', 'sampling_method': None,
               'variable_type': {'C':'estimator','gamma':'estimator'}}
 
 # params for SVC with TomekLinks sampling strategy
-svc_tomek_links = {'classifier': SVC, 'model_name': 'SVC_TomekLinks', 
+svc_tomek_links = {'classifier': SVC, 'model_name': 'SVC_TomekLinks',
+              'preprocessing_method': None,
               'sampling_method': tomek_links,
               'log_normalize': True, 
               'variables': ['C', 'gamma'],
@@ -44,7 +46,8 @@ svc_tomek_links = {'classifier': SVC, 'model_name': 'SVC_TomekLinks',
               'variable_type': {'C':'estimator','gamma':'estimator'}}
 
 # params for SVC with one-sided sampling strategy
-svc_one_sided = {'classifier': SVC, 'model_name': 'SVC_One_Sided_Selection', 
+svc_one_sided = {'classifier': SVC, 'model_name': 'SVC_One_Sided_Selection',
+              'preprocessing_method': None,
               'sampling_method': one_sided_selection,
               'log_normalize': True, 
               'variables': ['C', 'gamma'],
@@ -54,6 +57,7 @@ svc_one_sided = {'classifier': SVC, 'model_name': 'SVC_One_Sided_Selection',
 
 # params for simple random undersampling
 svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersample', 
+              'preprocessing_method': None,
               'sampling_method': random_undersample,
               'log_normalize': True, 
               'variables': ['sampling_strategy','C', 'gamma'],
@@ -63,7 +67,8 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersamp
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for adjusting class weights
-svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs', 
+svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs',
+             'preprocessing_method': None,
               'sampling_method': None,
               'log_normalize': True, 
               'variables': ['class_weight','C', 'gamma'],
@@ -74,6 +79,7 @@ svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs',
 
 # params for SMOTE with no undersampling of majority class
 svc_SMOTE = {'classifier': SVC, 'model_name': 'SVC_SMOTE', 
+             'preprocessing_method': None,
               'sampling_method': smote,
               'log_normalize': True, 
               'variables': ['sampling_strategy','C', 'gamma'],
@@ -84,6 +90,7 @@ svc_SMOTE = {'classifier': SVC, 'model_name': 'SVC_SMOTE',
 
 # params for SMOTE with different costs
 svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs', 
+              'preprocessing_method': None,
               'sampling_method': smote,
               'log_normalize': True, 
               'variables': ['sampling_strategy','C', 'gamma','class_weight'],
@@ -95,6 +102,7 @@ svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs',
 
 # params for random_undersample followed by SMOTE
 svc_random_undersample_smote = {'classifier': SVC, 
+              'preprocessing_method': None,
               'model_name': 'SVC_Random_Undersample_SMOTE', 
               'sampling_method': random_undersample_smote,
               'log_normalize': True, 
@@ -107,7 +115,8 @@ svc_random_undersample_smote = {'classifier': SVC,
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for fault detection-KNN
-fd_knn = {'classifier': FaultDetectionKNN, 
+fd_knn = {'classifier': FaultDetectionKNN,
+          'preprocessing_method': None,
           'model_name': 'Fault_Detection_KNN', 
           'sampling_method': None,
           'log_normalize': True, 
@@ -118,7 +127,8 @@ fd_knn = {'classifier': FaultDetectionKNN,
 
 # params for random undersample and cost
 svc_random_undersample_cost = {'classifier': SVC, 
-              'model_name': 'SVC_Random_Undersample_Different_Costs', 
+              'model_name': 'SVC_Random_Undersample_Different_Costs',
+              'preprocessing_method': None,
               'sampling_method': random_undersample,
               'log_normalize': True, 
               'variables': ['class_weight','C', 'gamma', 'sampling_strategy'],
@@ -131,6 +141,7 @@ svc_random_undersample_cost = {'classifier': SVC,
 # params for simple random oversampling
 svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
               'sampling_method': random_oversample,
+              'preprocessing_method': None,
               'log_normalize': True, 
               'variables': ['sampling_strategy','C', 'gamma'],
               'distributions': ['uniform','uniform','loguniform'],

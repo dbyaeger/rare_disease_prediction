@@ -78,6 +78,13 @@ class Tester():
         else:
             x = self.x
         
+        # Pre-process data if necessary
+        if 'preprocessing_method' in params:
+            if params['preprocessing_method']:
+                preprocessing_params = {param: params[param] for param in params if \
+                              params['variable_type'][param] == 'preprocessing'}
+                x, _ = params['preprocessing_method'](**preprocessing_params)
+                
         # Get rankings and probabilities
         y_pred_rank = model.decision_function(x)
         

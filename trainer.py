@@ -52,7 +52,8 @@ class Trainer():
                    
     """
     def __init__(self, classifier: callable, model_name: str, metric: callable,
-                 sampling_method: callable = None, log_normalize: bool = True,
+                 sampling_method: callable = None, preprocessing_method: callable = None,
+                 log_normalize: bool = True,
                 path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                 save_training_data_path: str = '/Users/yaeger/Documents/Modules/Porphyria/results/training',
                 save_model_path: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
@@ -71,6 +72,7 @@ class Trainer():
                                                     make_directory = True)
         self.metric = metric
         self.sampling_method = sampling_method
+        self.preprocessing_method = preprocessing_method
         self.max_evals = max_evals
         self.repetitions = repetitions
         self.cv_fold = cv_fold
@@ -94,6 +96,7 @@ class Trainer():
         bc = BayesianOptimizer(estimator = self.classifier, x = self.x, 
                                y = self.y, metric = self.metric,
                                sampler = self.sampling_method,
+                               preprocessor = self.preprocessing_method,
                                savepath = savepath,
                                max_evals = self.max_evals, cv_fold = self.cv_fold,
                                variables = self.variables,
@@ -171,6 +174,7 @@ class Trainer():
                       'max_evals': self.max_evals,
                       'classifier': type(self.classifier),
                       'repetitions': self.repetitions,
+                      'preprocessing_method': self.preprocessing_method,
                       'cv_fold': self.cv_fold,
                       'variables': self.variables,
                       'distributions': self.distributions,
@@ -182,7 +186,7 @@ class Trainer():
                       str(self.sampling_method))[0]
         except:
             param_dict['sampling_method'] = None
-            
+                    
         param_dict.update(best_params)
         return param_dict
  
