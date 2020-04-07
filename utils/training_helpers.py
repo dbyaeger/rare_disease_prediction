@@ -114,7 +114,7 @@ class BayesianOptimizer():
         x, y = self.x, self.y
         
         if preprocessing_params:
-            x, y = self.preprocessor(x, y, **preprocessing_params)
+            x = self.preprocessor(x, y, **preprocessing_params)
             
         if not sampler_params:
             # if no sampling parameters, no need to sample
@@ -147,7 +147,7 @@ class BayesianOptimizer():
                                           majority_class: 1}
         
         preprocessing_params = {param: params[param] for param in params if \
-                              self.variable_type[param] == 'preprocessing'}
+                              self.variable_type[param] == 'preprocessor'}
         
         sampler_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'sampler'}
@@ -167,7 +167,7 @@ class BayesianOptimizer():
         classifier = self.estimator(**estimator_params)
         
         if preprocessing_params:
-            x, y = self.preprocessor(x, y, **preprocessing_params)
+            x = self.preprocessor(x, y, **preprocessing_params)
         
         if not sampler_params:
             # if no sampling parameters, no need to sample

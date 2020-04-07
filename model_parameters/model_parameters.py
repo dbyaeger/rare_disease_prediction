@@ -16,6 +16,7 @@ from model_parameters.sampling_functions import (tomek_links, one_sided_selectio
                                                 random_undersample, smote,
                                                 random_undersample_smote,
                                                 random_oversample)
+from model_parameters.preprocessing_functions import linear_pca, radial_pca
 
 # parameters common to all models
 common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
@@ -125,6 +126,30 @@ fd_knn = {'classifier': FaultDetectionKNN,
           'arguments': [(2,1000,1),(0,0.01)], 
           'variable_type': {'k': 'estimator', 'alpha': 'estimator'}}
 
+# params for fault detection-KNN with linear pca
+fd_knn_linear_pca = {'classifier': FaultDetectionKNN,
+          'preprocessing_method': linear_pca,
+          'model_name': 'Fault_Detection_KNN_linear_PCA', 
+          'sampling_method': None,
+          'log_normalize': True, 
+          'variables': ['k','alpha', 'n_components'],
+          'distributions': ['quniform','uniform', 'quniform'],
+          'arguments': [(2,1000,1),(0,0.01),(1,153,1)], 
+          'variable_type': {'k': 'estimator', 'alpha': 'estimator',
+                            'n_components': 'preprocessor'}}
+
+# params for fault detection-KNN with radial PCA
+#fd_knn = {'classifier': FaultDetectionKNN,
+#          'preprocessing_method': radial_pca,
+#          'model_name': 'Fault_Detection_KNN_Radial_PCA', 
+#          'sampling_method': None,
+#          'log_normalize': True, 
+#          'variables': ['k','alpha'],
+#          'distributions': ['quniform','uniform', 'quniform'],
+#          'arguments': [(2,1000,1),(0,0.01),(1,153,1)], 
+#          'variable_type': {'k': 'estimator', 'alpha': 'estimator'}}
+
+
 # params for random undersample and cost
 svc_random_undersample_cost = {'classifier': SVC, 
               'model_name': 'SVC_Random_Undersample_Different_Costs',
@@ -161,6 +186,7 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               svc_SMOTE_cost,
                                               svc_random_undersample_smote,
                                               fd_knn,
+                                              fd_knn_linear_pca,
                                               svc_random_oversample],
                     common_params: dict = common_params):
     for model_param in input_list: model_param.update(common_params)

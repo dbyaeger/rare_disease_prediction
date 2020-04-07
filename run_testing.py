@@ -15,7 +15,7 @@ import csv
 import re
 
 
-def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria/csvs',
+def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                 path_to_models: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
                 save_directory: str = '/Users/yaeger/Documents/Modules/Porphyria/results/testing',
                 metrics: list = [geometric_mean_score, f1_score, average_precision_score,
@@ -68,6 +68,8 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria/csvs',
         path_to_models = Path(path_to_models)
         
     for model_path in path_to_models.iterdir():
+        if model_path.name == '.DS_Store':
+            continue
         results_dict = tester.evaluate_model(model_path)
         with save_path.open('a') as fh:
             writer = csv.writer(fh)

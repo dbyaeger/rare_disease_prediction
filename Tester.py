@@ -62,12 +62,16 @@ class Tester():
         """
         # Load model and parameters
         if isinstance(model_name, Path):
-            model, params = joblib.load(model_name)
+            loaded = joblib.load(model_name)
         elif isinstance(model_name, str):
             try:
-                model, params = joblib.load(model_name)
+                loaded = joblib.load(model_name)
             except:
-                model, params = joblib.load(self.model_path.joinpath(model_name))
+                loaded = joblib.load(self.model_path.joinpath(model_name))
+                
+        # Extract model and parameters
+        model = loaded['model']
+        params = loaded['training_parameters']
         
         # Make results_dict to store results
         results_dict = {'model_name': params['model_name']}
@@ -82,8 +86,8 @@ class Tester():
         if 'preprocessing_method' in params:
             if params['preprocessing_method']:
                 preprocessing_params = {param: params[param] for param in params if \
-                              params['variable_type'][param] == 'preprocessing'}
-                x, _ = params['preprocessing_method'](**preprocessing_params)
+                              params['variable_type'][param] == 'preprocessor'}
+                x = params['preprocessing_method'](**preprocessing_params)
                 
         # Get rankings and probabilities
         y_pred_rank = model.decision_function(x)
