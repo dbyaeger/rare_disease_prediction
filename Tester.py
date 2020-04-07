@@ -59,6 +59,10 @@ class Tester():
                 results_dict: results of evaluating the model in the format:
                     
                     {model_name: <model_name>, <metric>: float, ...}
+                
+                Also returns the parameters of the model in the format:
+                    
+                    {<parameter>: <value>, <parameter>: <value>, etc.}
         """
         # Load model and parameters
         if isinstance(model_name, Path):
@@ -72,6 +76,10 @@ class Tester():
         # Extract model and parameters
         model = loaded['model']
         params = loaded['training_parameters']
+        
+        # Extract best parameters
+        model_params = {param: params[param] for param in params['variable_type']}
+        model_params['model_name'] = params['model_name']
         
         # Make results_dict to store results
         results_dict = {'model_name': params['model_name']}
@@ -104,7 +112,7 @@ class Tester():
             metric_name = re.findall(r'\((.*)\)',str(metric_fnx))[0]
             results_dict[metric_name] = metric_fnx(model,x,y_true)
         
-        return results_dict
+        return results_dict, model_params
                 
     @staticmethod
     def load_data(path_to_data: Path, 
