@@ -33,6 +33,6 @@ def radial_pca(x, y, n_components, gamma):
     if not isinstance(n_components, int): n_components = int(n_components)
     
     # Set eigen_solver to arpack when n_components much less than n_samples
-    pca = KernelPCA(n_components = n_components, gamma = gamma, eigen_solver = ‘arpack’)
+    pca = KernelPCA(n_components = n_components, gamma = gamma, eigen_solver = "arpack")
     pca.fit(x)
     return pca.fit_transform(x)

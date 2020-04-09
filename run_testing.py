@@ -113,7 +113,7 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
         
     # Save paramters
     param_directory = save_directory.joinpath(results_file_name + '_model_parameters')
-    pd.DataFrame.from_dict(param_dict).to_csv(param_directory,drop_index = True)
+    pd.DataFrame.from_dict(param_dict).to_csv(param_directory, index = False)
 
 if __name__ == "__main__":
     run_testing()
