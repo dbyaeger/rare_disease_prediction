@@ -13,7 +13,7 @@ import numpy as np
 from imblearn.under_sampling import (TomekLinks, OneSidedSelection, 
                                      RandomUnderSampler)
 
-from imblearn.over_sampling import (SMOTE, RandomOverSampler)
+from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE)
 
 def tomek_links(x: np.ndarray,y: np.ndarray):
     """Returns tomek resampled x and y for which majority class Tomek Link
@@ -39,18 +39,20 @@ def random_undersample(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
     rus = RandomUnderSampler(sampling_strategy=sampling_strategy)
     return rus.fit_resample(x,y)
 
-def smote(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
+def smote(x: np.ndarray,y: np.ndarray, sampling_strategy: float, k_neighbors: int):
     """Returns array and labels for which the minority class of the input
     array has been randomly oversampled using SMOTE technique. sampling_strategy 
     specifies the desired ratio of the number of samples in the minority class 
     over the number of samples in the majority class.
     """
+    if not isinstance(k_neighbors, int): k_neighbors = int(k_neighbors)
+    
     sm = SMOTE(sampling_strategy=sampling_strategy)
     return sm.fit_resample(x,y)
 
 def random_undersample_smote(x: np.ndarray,y: np.ndarray, 
                              sampling_strategy_1:float, sampling_strategy_2:float,
-                             epsilon: float = 0.1):
+                             k_neighbors: int, epsilon: float = 0.01):
     """Returns array and labels for which the majority class of the input
     array has been randomly undersampled and then the minority class has been
     randomly oversampled using SMOTE technique. sampling_strategy_1
@@ -60,12 +62,17 @@ def random_undersample_smote(x: np.ndarray,y: np.ndarray,
     sampling_strategy_2 <= sampling_strategy_1, sampling_strategy_2 will be changed
     to sampling_strategy_1 + epsilon
     """
-    if sampling_strategy_2 <= sampling_strategy_1:
+    if (sampling_strategy_2 <= sampling_strategy_1) and sampling_strategy_1 <= 0.99:
         sampling_strategy_2 = sampling_strategy_1 + epsilon
+    elif (sampling_strategy_2 <= sampling_strategy_1) and sampling_strategy_1 > 0.99:
+        sampling_strategy_2 = 1.0
+    
+    if not isinstance(k_neighbors, int): k_neighbors = int(k_neighbors)
     
     rus = RandomUnderSampler(sampling_strategy=sampling_strategy_1)
     x, y = rus.fit_resample(x,y)
-    sm = SMOTE(sampling_strategy=sampling_strategy_2)
+    if sampling_strategy_1 <= 0.99:
+        sm = SMOTE(sampling_strategy=sampling_strategy_2, k_neighbors=k_neighbors)
     return sm.fit_resample(x,y)
 
 def random_oversample(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
@@ -76,5 +83,20 @@ def random_oversample(x: np.ndarray,y: np.ndarray, sampling_strategy:float):
     """
     ros = RandomOverSampler(sampling_strategy=sampling_strategy)
     return ros.fit_resample(x, y)
+
+def kmeans_smote(x: np.ndarray,y: np.ndarray, sampling_strategy: float, 
+                 k_neighbors: int, cluster_balance_threshold: float):
+    """Returns arrays for which the minority class has been oversampled using
+    KMeansSmote. Sampling_strategy is the desired ratio of minority to majority
+    samples, k_neighbors are the number of neighbors to use when creating new
+    synthetic minority samples, and cluster_balance_threshold is the balance
+    ratio threshold for creating new minority samples from each cluster.
+    """
+    if not isinstance(k_neighbors, int): k_neighbors = int(k_neighbors)
+    
+    kmm = KMeansSMOTE(sampling_strategy = sampling_strategy, 
+                      k_neighbors = k_neighbors, 
+                      cluster_balance_threshold = cluster_balance_threshold)
+    return kmm.fit_resample(x,y)
     
     

@@ -15,7 +15,8 @@ from sklearn.metrics import make_scorer, average_precision_score
 from model_parameters.sampling_functions import (tomek_links, one_sided_selection, 
                                                 random_undersample, smote,
                                                 random_undersample_smote,
-                                                random_oversample)
+                                                random_oversample,
+                                                kmeans_smote)
 from model_parameters.preprocessing_functions import linear_pca, radial_pca
 
 # parameters common to all models
@@ -83,10 +84,11 @@ svc_SMOTE = {'classifier': SVC, 'model_name': 'SVC_SMOTE',
              'preprocessing_method': None,
               'sampling_method': smote,
               'log_normalize': True, 
-              'variables': ['sampling_strategy','C', 'gamma'],
-              'distributions': ['uniform','uniform','loguniform'],
-              'arguments': [(0,1),(0, 100),(1e-3,3)], 
+              'variables': ['sampling_strategy','k_neighbors','C', 'gamma'],
+              'distributions': ['uniform','quniform','uniform','loguniform'],
+              'arguments': [(0,1),(1,10,1),(0, 100),(1e-3,3)], 
               'variable_type': {'sampling_strategy': 'sampler',
+                                'k_neighbors': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for SMOTE with different costs
@@ -94,10 +96,13 @@ svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs',
               'preprocessing_method': None,
               'sampling_method': smote,
               'log_normalize': True, 
-              'variables': ['sampling_strategy','C', 'gamma','class_weight'],
-              'distributions': ['uniform','uniform','loguniform','uniform'],
-              'arguments': [(0,1),(0, 100),(1e-3,3), (0,1e6)], 
+              'variables': ['sampling_strategy', 'k_neighbors',
+                            'C', 'gamma','class_weight'],
+              'distributions': ['uniform','quniform','uniform',
+                                'loguniform','uniform'],
+              'arguments': [(0,1),(1,10,1),(0, 100),(1e-3,300), (0,1e6)], 
               'variable_type': {'sampling_strategy': 'sampler',
+                                'k_neighbors': 'sampler',
                                 'C':'estimator','gamma':'estimator',
                                 'class_weight': 'estimator'}}
 
@@ -108,11 +113,12 @@ svc_random_undersample_smote = {'classifier': SVC,
               'sampling_method': random_undersample_smote,
               'log_normalize': True, 
               'variables': ['sampling_strategy_1','sampling_strategy_2',
-                            'C', 'gamma'],
-              'distributions': ['uniform','uniform','uniform','loguniform'],
-              'arguments': [(0,1),(0,1),(0, 100),(1e-3,3)], 
+                            'k_neighbors','C', 'gamma'],
+              'distributions': ['uniform','uniform','quniform','uniform','loguniform'],
+              'arguments': [(0,1),(0,1),(1,10,1),(0, 100),(1e-3,3)], 
               'variable_type': {'sampling_strategy_1': 'sampler',
                                 'sampling_strategy_2': 'sampler',
+                                'k_neighbors': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for fault detection-KNN
@@ -165,13 +171,27 @@ svc_random_undersample_cost = {'classifier': SVC,
 
 # params for simple random oversampling
 svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
-              'sampling_method': random_oversample,
+              'sampling_method': random_oversample, 
               'preprocessing_method': None,
               'log_normalize': True, 
               'variables': ['sampling_strategy','C', 'gamma'],
               'distributions': ['uniform','uniform','loguniform'],
               'arguments': [(0,1),(0, 100),(1e-3,3)], 
               'variable_type': {'sampling_strategy': 'sampler',
+                                'C':'estimator','gamma':'estimator'}}
+
+# params for kmeans smote
+svc_KMeans_SMOTE = {'classifier': SVC, 'model_name': 'SVC_KMeans_SMOTE', 
+             'preprocessing_method': None,
+              'sampling_method': kmeans_smote,
+              'log_normalize': True, 
+              'variables': ['sampling_strategy','k_neighbors','cluster_balance_threshold',
+                            'C', 'gamma'],
+              'distributions': ['uniform','quniform','uniform','uniform','loguniform'],
+              'arguments': [(0,1),(1,10,1),(0.1,3),(0, 100),(1e-3,3)], 
+              'variable_type': {'sampling_strategy': 'sampler',
+                                'k_neighbors': 'sampler',
+                                'cluster_balance_threshold': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
 
@@ -181,10 +201,11 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #svc_one_sided,
                                               #svc_random_undersample,
                                               #svc_random_undersample_cost,
-                                              svc_cost,
-                                              svc_SMOTE,
+                                              #svc_cost,
+                                              #svc_SMOTE,
                                               svc_SMOTE_cost,
                                               svc_random_undersample_smote,
+                                              svc_KMeans_SMOTE,
                                               fd_knn,
                                               fd_knn_linear_pca,
                                               svc_random_oversample],
