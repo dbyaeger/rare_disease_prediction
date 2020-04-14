@@ -46,20 +46,25 @@ class FaultDetectionKNN():
         self.n_jobs = n_jobs
         self.nn = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
     
-    def fit(self,X: np.ndarray,y: np.ndarray, majority_label: int = -1):
+    def fit(self,X: np.ndarray,y: np.ndarray = None, majority_label: int = -1):
         """ Generates distribution of sum-of-square distance to k nearest
         neighbors.
 
         INPUTS:
             X: array of training data, with features as columns and observations
             in rows
-            y: training data labels
+            y: training data labels. Optional - if set to None it is assumed all
+            data are negative instances.
             majority_label: label of data on which to train, by default set to
             -1. Data without this label will be discarded.
         RETURNS:
             None
         """
-        self.train_X = X[y == majority_label,:].copy()
+        if y is not None:
+            self.train_X = X[y == majority_label,:].copy()
+        else:
+            self.train_X = X.copy()
+            
         self.nn.fit(self.train_X)
        
         # Get distances. Set k += 1 because in training at least one distance will be zero
@@ -157,22 +162,25 @@ class MahalanobisDistanceKNN():
         
         self.nn = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
     
-    def fit(self,X: np.ndarray,y: np.ndarray, majority_label: int = -1):
+    def fit(self,X: np.ndarray,y: np.ndarray= None, majority_label: int = -1):
         """ Generates distribution of sum-of-square distance to k nearest
         neighbors.
 
         INPUTS:
             X: array of training data, with features as columns and observations
             in rows
-            y: training data labels
+            y: training data labels. Optional - if set to None it is assumed all
+            data are negative instances.
             majority_label: label of data on which to train, by default set to
             -1. Data without this label will be discarded.
         RETURNS:
             None
         """
-        self.train_X = X[y == majority_label,:].copy()
+        if y is not None:
+            self.train_X = X[y == majority_label,:].copy()
+        else:
+            self.train_X = X.copy()
         
-     
         # Find sum of distances to nearest neighbor in mahalanobis distances
         sum_of_mahalanobis_distances = self.get_mahalanobis_distances(X = self.train_X,
                                                                  train_mode = True,
@@ -234,6 +242,8 @@ class MahalanobisDistanceKNN():
             self.nn.fit(X)
             K = self.K + 1
             k = self.k + 1
+        else:
+            K = self.K 
         
         # Find nearest samples
         nearest_neighbors = self.nn.kneighbors(X, n_neighbors = K,
@@ -250,17 +260,14 @@ class MahalanobisDistanceKNN():
                     X[nearest_neighbors[i,:],:]).get_precision()
         
         # Find sum of distances to nearest neighbor in mahalanobis distances
-        mahalanobis_distances = np.zeros(X.shape[0])
+        sum_of_distances = np.zeros(X.shape[0])
         for i in range(X.shape[0]):
-            X_mahalanobis = mahalanobis(sample_to_score = X[i,:],
+            mahalanobis_distances = mahalanobis(sample_to_score = X[i,:],
                                         reference_array = self.train_X,
                                         precision_matrix = precision_matrices[i,:,:])
-            knn = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
-            knn.fit(X_mahalanobis)
-            distances = knn.kneighbors(X_mahalanobis, n_neighbors = k,
-                                    return_distance = True)[0]
-            mahalanobis_distances[i] = np.sqrt(distances.sum(axis=1))
-        return mahalanobis_distances
+            # Use k-1 because first index counted as zero
+            sum_of_distances[i] = np.partition(mahalanobis_distances,k-1)[0:k].sum()
+        return sum_of_distances
         
     
     
