@@ -15,8 +15,11 @@ def mahalanobis(sample_to_score: np.ndarray, reference_array: np.ndarray,
     """Finds the distance of each row in a reference array from a sample vector. 
     Returns a vector of mahalanobis distances.
     """
-    differences = sample_to_score - reference_array
-    return differences@precision_matrix@differences.T
+    differences = np.zeros(reference_array.shape[0])
+    for i in range(reference_array.shape[0]):
+        delta = sample_to_score - reference_array[i,:]
+        differences[i] = delta.T@precision_matrix@delta
+    return differences
 
 
 
