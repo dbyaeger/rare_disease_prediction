@@ -75,7 +75,7 @@ class SHRINK():
         for t in range(self.T):
             for feature in range(X.shape[1]):
                 self.classifiers[feature].train()
-        
+                #print(self.classifiers[feature].weights)
         #Select best classifiers
         for feature in range(X.shape[1]):
             self.classifiers[feature].prune()

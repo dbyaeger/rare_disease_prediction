@@ -45,7 +45,6 @@ class RangeClassifier():
         decisions[decisions == 1] = self.minority_label
         return decisions
     
-    @property
     def feature_values(self):
         """Returns the sorted X array"""
         return self.X
@@ -56,7 +55,7 @@ class RangeClassifierHandler():
     """
     def __init__(self, train_feature: np.ndarray, train_labels: np.ndarray, 
              metric: callable, feature: int, minority_label: int = -1,
-             majority_label: int = 1):
+             majority_label: int = 1, keep_all_classifiers: bool = True):
         
         assert len(train_feature.shape) == 1, f'train feature should be a 1-D array, not an array with shape {train_feature.shape}'
         self.eval_train_feature = train_feature
@@ -68,11 +67,12 @@ class RangeClassifierHandler():
         self.majority_label = majority_label
         self.metric = metric
         self.feature = feature
+        self.keep_all_classifiers = keep_all_classifiers
         
         #start with base classifier with entire range
         classifier, score = self._create_and_score_classifier(feature_values)
-        self.classifier = [classifier]
-        self.weight = [score]
+        self.classifiers = [classifier]
+        self.weights = [score]
     
     def _create_and_score_classifier(self, X: np.ndarray):
         """Instantiates a new classifier with the array X and evaluates the 
@@ -89,10 +89,10 @@ class RangeClassifierHandler():
         right endpoint in by one value, depending on which acheives a higher 
         value on the metric. Also calculate weight for new classifier"""
         # Get feature values from last trained classifer. feature_values is sorted 
-        feature_values = self.classifier[-1].feature_values
+        feature_values = self.classifiers[-1].feature_values()
         
         # if feature values has length of 2, no further classifers can be trained
-        if len(feature_values <= 2):
+        if len(feature_values) <= 2:
             return None
         
         # if more than 2 features, create classifiers by eliminating left and right endpoints
@@ -101,23 +101,24 @@ class RangeClassifierHandler():
         
         # Keep the classifier with the best score
         if left_score < right_score:
-            self.classifier.append(left_classifier)
-            self.weight.append(left_score)
+            self.classifiers.append(left_classifier)
+            self.weights.append(left_score)
         else:
-            self.classifier.append(right_classifier)
-            self.weight.append(right_score)
+            self.classifiers.append(right_classifier)
+            self.weights.append(right_score)
         
     def prune(self):
         """Calling the prune method causes only the best classifier to be 
         retained amongst all the trained classifiers.
         """
         # Get best classifier and weight
-        best_classifier = self.classifier[np.argmax(self.weight)]
-        best_weight = np.max(self.weight)
+        best_classifier = self.classifiers[np.argmax(self.weights)]
+        best_weight = np.max(self.weights)
         
         # delete old values
-        del self.classifier
-        del self.weight
+        if not self.keep_all_classifiers:
+            del self.classifiers
+            del self.weights
         
         # Only save the best values
         self.classifier = best_classifier

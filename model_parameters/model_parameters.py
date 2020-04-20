@@ -10,6 +10,7 @@ Set of functions and commands to create, run, and save each model.
 
 from sklearn.svm import SVC
 from instance_methods.InstanceMethods import FaultDetectionKNN
+from shrink.shrink import SHRINK
 from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import make_scorer, average_precision_score
 from model_parameters.sampling_functions import (tomek_links, one_sided_selection, 
@@ -100,7 +101,7 @@ svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs',
                             'C', 'gamma','class_weight'],
               'distributions': ['uniform','quniform','uniform',
                                 'loguniform','uniform'],
-              'arguments': [(0,1),(1,10,1),(0, 100),(1e-3,300), (0,1e6)], 
+              'arguments': [(0,1),(1,10,1),(0, 100),(1,10), (0,1e6)], 
               'variable_type': {'sampling_strategy': 'sampler',
                                 'k_neighbors': 'sampler',
                                 'C':'estimator','gamma':'estimator',
@@ -194,7 +195,31 @@ svc_KMeans_SMOTE = {'classifier': SVC, 'model_name': 'SVC_KMeans_SMOTE',
                                 'cluster_balance_threshold': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
+svc_KMeans_SMOTE = {'classifier': SVC, 'model_name': 'SVC_KMeans_SMOTE', 
+             'preprocessing_method': None,
+              'sampling_method': kmeans_smote,
+              'log_normalize': True, 
+              'variables': ['sampling_strategy','k_neighbors','cluster_balance_threshold',
+                            'C', 'gamma'],
+              'distributions': ['uniform','quniform','uniform','uniform','loguniform'],
+              'arguments': [(0,1),(1,10,1),(0.1,3),(0, 100),(1e-3,3)], 
+              'variable_type': {'sampling_strategy': 'sampler',
+                                'k_neighbors': 'sampler',
+                                'cluster_balance_threshold': 'sampler',
+                                'C':'estimator','gamma':'estimator'}}
 
+shrink = {'classifier': SHRINK, 'model_name': 'SHRINK', 
+             'preprocessing_method': None,
+              'sampling_method': None,
+              'log_normalize': True, 
+              'variables': ['sampling_strategy','k_neighbors','cluster_balance_threshold',
+                            'C', 'gamma'],
+              'distributions': ['uniform','quniform','uniform','uniform','loguniform'],
+              'arguments': [(0,1),(1,10,1),(0.1,3),(0, 100),(1e-3,3)], 
+              'variable_type': {'sampling_strategy': 'sampler',
+                                'k_neighbors': 'sampler',
+                                'cluster_balance_threshold': 'sampler',
+                                'C':'estimator','gamma':'estimator'}}
 
 
 def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
