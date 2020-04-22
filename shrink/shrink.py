@@ -127,7 +127,7 @@ class SHRINK(BaseEstimator):
             for each observation in X.
         """
         # Sum up predictions of classifiers
-        return np.array([clf.decision_function(X[:,clf.feature]) for clf in enumerate(self.classifiers)]).sum(axis = 0)
+        return np.array([clf.decision_function(X[:,clf.feature]) for clf in self.classifiers]).sum(axis = 0)
      
         
         
