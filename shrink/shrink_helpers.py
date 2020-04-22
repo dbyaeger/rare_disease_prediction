@@ -6,13 +6,20 @@ Created on Wed Apr 15 13:23:03 2020
 @author: yaeger
 """
 import numpy as np
+from sklearn.base import BaseEstimator
 
-class RangeClassifier():
+class RangeClassifier(BaseEstimator):
     """Very simple classifier that returns 1 for each entry that is within
     the range [min, max] anf false otherwise.
+    
+    INPUTS:
+        X: 1-D numpy array of training data
+        minority_label: what value denotes the minority label (default of 1)
+        majority_label: what value denotes the majority label (default of -1)
+        
     """
     def  __init__(self, X: np.ndarray, majority_label: int = -1, minority_label: int = 1):
-        assert len(X) >= 2, 'X has length less than 2!'
+        assert len(X) >= 2, f'X: {X} has length less than 2!'
         
         # Sort array if not already sorted
         if not np.all(X[:-1] <= X[1:]):
@@ -51,7 +58,26 @@ class RangeClassifier():
 
 class RangeClassifierHandler():
     """Implements a single weak classifier of type used in the SHRINK algorithm
+    from "Machine Learning for the Detection of Oil Spills in Satellite Radar 
+    Images" by Kubat, Holte, and Matwin. Trains a series RangeClassifiers, and
+    uses only the best-performing version on the metric for prediction. The
+    prediction of the best-performing RangeClassifier in training is weighted
+    by its performance on the training set using the metric.
     
+    INPUTS:
+        train_feature: a single feaute column from the training data as a
+            1-D numpy array
+        train_labels: training labels as a 1-D numpy array
+        metric: the metric to be used in weighting and assessing classifiers.
+            Should take the classifier, data, and label as input and return
+            a float.
+        minority_label: what value denotes the minority label (default of 1)
+        majority_label: what value denotes the majority label (default of -1)
+    
+    PARAMETERS: 
+        keep_all_classifiers: if set to True, all classifiers and weights
+            created during training will be saved. Otherwise, only the best
+            classifer and corresponding best weight will be saved.
     """
     def __init__(self, train_feature: np.ndarray, train_labels: np.ndarray, 
              metric: callable, feature: int, minority_label: int = -1,
@@ -63,6 +89,7 @@ class RangeClassifierHandler():
         
         # np.unique returns a sorted array
         feature_values = np.unique(train_feature[train_labels == minority_label])
+        #assert len(feature_values) > 2, f"{feature_values} doesn't have enough unique values!"
         self.minority_label = minority_label
         self.majority_label = majority_label
         self.metric = metric
@@ -91,22 +118,19 @@ class RangeClassifierHandler():
         # Get feature values from last trained classifer. feature_values is sorted 
         feature_values = self.classifiers[-1].feature_values()
         
-        # if feature values has length of 2, no further classifers can be trained
-        if len(feature_values) <= 2:
-            return None
-        
-        # if more than 2 features, create classifiers by eliminating left and right endpoints
-        left_classifier, left_score = self._create_and_score_classifier(feature_values[1:])
-        right_classifier, right_score = self._create_and_score_classifier(feature_values[:-1])
-        
-        # Keep the classifier with the best score
-        if left_score < right_score:
-            self.classifiers.append(left_classifier)
-            self.weights.append(left_score)
-        else:
-            self.classifiers.append(right_classifier)
-            self.weights.append(right_score)
-        
+        # if feature values has length of 3, only 2 additional classifers can be trained
+        if len(feature_values) >= 3:
+            left_classifier, left_score = self._create_and_score_classifier(feature_values[1:])
+            right_classifier, right_score = self._create_and_score_classifier(feature_values[:-1])
+            
+            # Keep the classifier with the best score
+            if left_score < right_score:
+                self.classifiers.append(left_classifier)
+                self.weights.append(left_score)
+            else:
+                self.classifiers.append(right_classifier)
+                self.weights.append(right_score)
+
     def prune(self):
         """Calling the prune method causes only the best classifier to be 
         retained amongst all the trained classifiers.

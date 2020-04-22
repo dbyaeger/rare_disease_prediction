@@ -8,8 +8,11 @@ Created on Wed Apr 15 11:39:48 2020
 import numpy as np
 from collections import Counter
 from shrink.shrink_helpers import RangeClassifierHandler
+from imblearn.metrics import geometric_mean_score
+from sklearn.metrics import make_scorer
+from sklearn.base import BaseEstimator
 
-class SHRINK():
+class SHRINK(BaseEstimator):
     """Implementation of SHRINK algorithm from "Machine Learning for the Detection
     of Oil Spills in Satellite Radar Images" by Kubat, Holte, and Matwin. Trains
     an ensemble of classifiers for each feature of the form:
@@ -36,10 +39,13 @@ class SHRINK():
                 classifier.
             
     """
-    def __init__(self, T: int, metric: callable, theta: float, 
+    def __init__(self, T: int, theta: float, metric: callable = make_scorer(geometric_mean_score),
                  metric_performance_threshold: float = 0.5):
         
         assert metric_performance_threshold < 1, "Metric performance threshold must be less than one"
+        
+        if not isinstance(T, int):
+            T = int(T)
         
         self.T = T
         self.metric = metric
@@ -64,20 +70,23 @@ class SHRINK():
         #Instantiate labelers
         self.classifiers = []
         for feature in range(X.shape[1]):
-            self.classifiers.append(RangeClassifierHandler(train_feature = X[:,feature], 
-                                  train_labels = y,
-                                  minority_label = minority_label,
-                                  majority_label = majority_label,
-                                  metric =self.metric,
-                                  feature = feature))
+            train_feature = X[:,feature]
+            # Sometimes, especially with cross-validation, only 1 unique feature value
+            if len(np.unique(train_feature[y == minority_label])) >= 2:
+                self.classifiers.append(RangeClassifierHandler(train_feature = train_feature, 
+                                      train_labels = y,
+                                      minority_label = minority_label,
+                                      majority_label = majority_label,
+                                      metric =self.metric,
+                                      feature = feature))
         
-        #Train
-        for t in range(self.T):
-            for feature in range(X.shape[1]):
+        #Train. First training for each classifier happens on instantiation
+        for t in range(self.T-1):
+            for feature in range(len(self.classifiers)):
                 self.classifiers[feature].train()
-                #print(self.classifiers[feature].weights)
+                
         #Select best classifiers
-        for feature in range(X.shape[1]):
+        for feature in range(len(self.classifiers)):
             self.classifiers[feature].prune()
             
         #If classifier weight less than metric_performance_threshold, set classifier weight to zero
@@ -118,9 +127,8 @@ class SHRINK():
             for each observation in X.
         """
         # Sum up predictions of classifiers
-        return np.array([clf.decision_function(X[:,j]) for j,clf in enumerate(self.classifiers)]).sum(axis = 0)
-        
-        
+        return np.array([clf.decision_function(X[:,clf.feature]) for clf in enumerate(self.classifiers)]).sum(axis = 0)
+     
         
         
         
