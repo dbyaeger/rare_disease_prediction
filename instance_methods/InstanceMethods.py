@@ -9,8 +9,9 @@ from sklearn.covariance import MinCovDet, LedoitWolf
 from sklearn.neighbors import NearestNeighbors
 from instance_methods.instance_method_helpers import mahalanobis
 import numpy as np
+from sklearn.base import BaseEstimator
 
-class FaultDetectionKNN():
+class FaultDetectionKNN(BaseEstimator):
     """Implementation of the classifier in "Fault Detection Using the k-Nearest
     Neighbor Rule for Semiconductor Manufacturing Processes" by He and Wang.
 
@@ -41,6 +42,10 @@ class FaultDetectionKNN():
     def __init__(self, k: int = 3, alpha: float = 0.01, n_jobs: int = 4):
         assert 0 < alpha < 1, "alpha must be between 0 and 1!"
         assert n_jobs >= 1, "n_jobs must be 0ne or greater!"
+        
+        # Make sure k is an integer
+        if not isinstance(k,int): k = int(k)
+        
         self.k = k
         self.alpha = alpha
         self.n_jobs = n_jobs
@@ -112,11 +117,13 @@ class FaultDetectionKNN():
         """Returns the sum-of-square distances to the nearest n_neighbors for
         every row in X.
         """
-        distances = self.nn.kneighbors(X, n_neighbors = n_neighbors,
+        if not isinstance(n_neighbors, int): n_neighbors = int(n_neighbors)
+        
+            distances = self.nn.kneighbors(X, n_neighbors = n_neighbors,
                                     return_distance = True)[0]
         return (distances*distances).sum(axis=1)
     
-class MahalanobisDistanceKNN():
+class MahalanobisDistanceKNN(BaseEstimator):
     """Implementation of the Adaptive Mahalanobis Distance KNN described in
     "Adaptive Mahalanobis Distance and k-Nearest Neighbor Rule for Fault
     Detection in Semiconductor Manufacturing" by Verdier and Ferreira.
@@ -150,6 +157,12 @@ class MahalanobisDistanceKNN():
                  precision_method = 'LedoitWolf', n_jobs: int = 4):
         assert 0 < alpha < 1, "alpha must be between 0 and 1!"
         assert 1 < k < K, "K and k must be greater than 1 and K must be greater than k!"
+        
+        # Make sure k and K are integers
+        if not isinstance(k,int): k = int(k)
+        if not isinstance(K,int): k = int(K)
+        
+        
         self.K = K
         self.k = k
         self.alpha = alpha
@@ -193,6 +206,8 @@ class MahalanobisDistanceKNN():
         """Returns the sum-of-square distances to the nearest n_neighbors for
         every row in X.
         """
+        if not isinstance(n_neighbors, int): n_neighbors = int(n_neighbors)
+        
         if X.shape[0] == 1:
             X = np.array(X)
             

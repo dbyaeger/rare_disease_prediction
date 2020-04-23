@@ -12,7 +12,7 @@ from sklearn.model_selection import cross_val_score
 from hyperopt import STATUS_OK
 from sklearn.svm import SVC
 import csv
-from hyperopt.hp import lognormal, loguniform, uniform, quniform
+from hyperopt.hp import lognormal, loguniform, uniform, quniform, choice
 from pathlib import Path
 from hyperopt import Trials, tpe, fmin
 
@@ -222,6 +222,9 @@ class BayesianOptimizer():
             elif distributions[i] == 'quniform':
                 (low, high, q) = arguments[i]
                 space[variable] = quniform(variable,low,high,q)
+            elif distributions[i] == 'choice':
+                space[variable] = choice(variable, arguments[i])
+
         return space
     
         

@@ -13,7 +13,8 @@ import numpy as np
 from imblearn.under_sampling import (TomekLinks, OneSidedSelection, 
                                      RandomUnderSampler)
 
-from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE)
+from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE,
+                                    ADASYN)
 
 def tomek_links(x: np.ndarray,y: np.ndarray):
     """Returns tomek resampled x and y for which majority class Tomek Link
@@ -96,7 +97,22 @@ def kmeans_smote(x: np.ndarray,y: np.ndarray, sampling_strategy: float,
     
     kmm = KMeansSMOTE(sampling_strategy = sampling_strategy, 
                       k_neighbors = k_neighbors, 
-                      cluster_balance_threshold = cluster_balance_threshold)
+                      cluster_balance_threshold = cluster_balance_threshold,
+                      n_jobs = 4)
     return kmm.fit_resample(x,y)
-    
+
+def kmeans_adasyn(x: np.ndarray,y: np.ndarray, sampling_strategy: float, 
+                 n_neighbors: int):
+    """Returns array for which the minority class has been oversampled using
+    ADASYN. Sampling_strategy is the desired ratio of minority to majority
+    samples, n_neighbors are the number of neighbors to use when creating new
+    synthetic minority samples.
+    """
+     if not isinstance(n_neighbors, int): n_neighbors = int(n_neighbors)
+     
+     ada = ADASYN(sampling_strategy = sampling_strategy, n_neighbors = n_neighbors,
+                  n_jobs = 4)
+     return ada.fit_resample(x,y)
+     
+     
     
