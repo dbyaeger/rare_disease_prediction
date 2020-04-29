@@ -25,9 +25,8 @@ def get_positive_IDs(path: Path = Path('/Users/yaeger/Documents/Porphyria')):
         data = pd.read_csv(fh)
     return data['Patient_ID'].values
 
-def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/Documents/Porphyria'),
-                     n = 1000):
-    """Creates a data frame with labels from the 100 manually reviewed
+def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/Documents/Porphyria')):
+    """Creates a data frame with labels from the 200 manually reviewed
     porphyria cases which the model predicted to be close to the decision 
     boundary"""
     
@@ -69,15 +68,6 @@ def make_holdout_set(all_ID_df: pd.DataFrame, path: Path = Path('/Users/yaeger/D
     
     # Rename Patient ID to ZCODE for merging purposes
     annotated_patients = annotated_patients.rename(columns = {'Patient ID': 'ZCODE'})
-    
-    # Get random IDs
-    random_IDs = fetch_random_zscores(all_ID_df, n = n)
-    
-    # Select dataframe with random IDs
-    random_IDs = all_ID_df[all_ID_df['ZCODE'].isin(random_IDs)]['ZCODE']
-    
-    # Append IDs to annotated dataframe
-    annotated_patients = pd.merge(annotated_patients,random_IDs,how = 'outer', on = 'ZCODE')
     
     # Inner join with training data
     annotated_patients = pd.merge(annotated_patients,all_ID_df,how = 'inner', on = 'ZCODE')
@@ -158,9 +148,7 @@ def dataset_preprocessing_and_partitioning(path: Path = Path('/Users/yaeger/Docu
 def make_test_set(holdout_set: pd.DataFrame) -> pd.DataFrame:
     """Takes the holdout set as input and creates the test set by:
         
-        1) Deleting patients with 'Yes' mention of Porphyria, but for whom
-        'Category' field is Possible. These patients had only an incidental
-        mention of Porphyria in their notes.
+        1) Deleting patients with 'Yes' mention of Porphyria.
         
         2) Deleting deceased patients.
         
@@ -169,15 +157,10 @@ def make_test_set(holdout_set: pd.DataFrame) -> pd.DataFrame:
     
     no_porph_mention_living = holdout_set[(holdout_set['Porph_mention'] == 'No') \
                                           & (holdout_set['Category'] != 'Deceased')]
-    
-    yes_porph_mention_possible = holdout_set[(holdout_set['Porph_mention'] == 'Yes') \
-                                          & (holdout_set['Category'] == 'Possible')]
-    
-    unlabeled = holdout_set[holdout_set['Porph_mention'].isnull()]
-    unlabeled = unlabeled.replace({'Category': np.nan}, 'Unlikely')
 
-    test_set = [no_porph_mention_living, yes_porph_mention_possible, unlabeled]
-    return pd.concat(test_set,ignore_index=True)
+    no_porph_mention_living.reset_index(drop=True, inplace=True)
+    
+    return no_porph_mention_living
 
 def get_training_x_and_y(training_data: pd.DataFrame, log_normalize: bool = True,
                                  meta_data_columns: list = ['ID','ZCODE','AIP_Diagnosis',

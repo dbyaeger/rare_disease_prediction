@@ -15,6 +15,7 @@ import csv
 from hyperopt.hp import lognormal, loguniform, uniform, quniform, choice
 from pathlib import Path
 from hyperopt import Trials, tpe, fmin
+from imblearn.pipeline import Pipeline
 
 def repeated_cross_val(estimator, x: np.ndarray, y: np.ndarray,
                        metric: callable = make_scorer(geometric_mean_score), 
@@ -44,6 +45,8 @@ class BayesianOptimizer():
     
     INPUTS:
         estimator: classifier model to be used
+        sampler: sampling method to be used
+        preprocessor: preprocessing method to be used
         x: numpy array of x training values
         y: numpy array of y training values
         metric: metric to be optimizied on validation set
@@ -111,17 +114,12 @@ class BayesianOptimizer():
         
         preprocessing_params, sampler_params, estimator_params = self._sort_params(params)
         
-        x, y = self.x, self.y
-        
-        if preprocessing_params:
-            x = self.preprocessor(x, y, **preprocessing_params)
-            
-        if not sampler_params:
+        if not sampler_params and not preprocessing_params:
             # if no sampling parameters, no need to sample
-            metric_result = repeated_cross_val(self.estimator, x, y, **params)
+            metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
         else:
-            x,y = self.sampler(x, y, **sampler_params)            
-            metric_result = repeated_cross_val(self.estimator, x, y, **estimator_params)
+            pipeline_classifier, pipeline_parameters = self.make_pipeline(preprocessing_params, sampler_params, estimator_params)
+            metric_result = repeated_cross_val(pipeline_classifier, self.x, self.y, **pipeline_parameters)
         
         # make metric_result negative for optimization
         loss = 1 - metric_result
@@ -156,8 +154,34 @@ class BayesianOptimizer():
                               self.variable_type[param] == 'estimator'}
         
         return preprocessing_params, sampler_params, estimator_params
+    
+    def make_pipeline(self, preprocessing_params, sampler_params, estimator_params):
+        """Assembles a pipeline allowing the steps to be cross-validated 
+        together. Takes in parameters for preprocessing, sampler, and
+        estimator and returns a pipeline constructed from the preprocessing,
+        sampler, and estimator parameters and the parameters."""
+        steps = []
+        pipeline_params = {}
         
-
+        if sampler_params:
+            steps.append(('sampler', self.sampler))
+            sampler_pipeline_params = {f'sampler__{key}':sampler_params[key] \
+                                       for key in sampler_params}
+            pipeline_params.update(sampler_pipeline_params)
+        
+        if preprocessing_params:
+            steps.append(('preprocessor', self.preprocessor))
+            pipeline_preprocessing_params = {f'preprocessor__{key}':preprocessing_params[key] \
+                                             for key in preprocessing_params}
+            pipeline_params.update(pipeline_preprocessing_params)
+        
+        steps.append(('estimator', self.estimator))
+        pipeline_estimator_params = {f'estimator__{key}':estimator_params[key] \
+                                     for key in estimator_params}
+        pipeline_params.update(pipeline_estimator_params)
+        
+        return Pipeline(steps), pipeline_params
+        
     def train_and_return_model(self, params):
         """Method to train model on full dataset with selected parameters,
         evaluate metric on training set, and return the model.

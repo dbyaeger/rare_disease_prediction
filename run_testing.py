@@ -20,7 +20,8 @@ def update_param_dict(new_dict: dict, master_dict: dict):
     """ Appends the entries of the new_dict as values to lists with the same keys
     in master_dict. If a new key is given in new_dict not appearing in master_dict,
     a new list will be created in master_dict with numpy nan's in the previous
-    spots and the updated values in the last spot. Returns master_dict.
+    spots and the updated values in the last spot. Returns master_dict. Assumes
+    only 1 new model dictionary is added at a time.
     """
     if not master_dict:
         master_dict = {key: [new_dict[key]] for key in new_dict}
@@ -33,7 +34,7 @@ def update_param_dict(new_dict: dict, master_dict: dict):
                     master_dict[key].extend(new_dict[key])
             else:
                 max_len = max([len(master_dict[key]) for key in master_dict])
-                master_dict[key] = [np.nan]*max_len
+                master_dict[key] = [np.nan]*(max_len-1)
                 try:
                     master_dict[key].append(new_dict[key])
                 except:
@@ -50,10 +51,8 @@ def update_param_dict(new_dict: dict, master_dict: dict):
 def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                 path_to_models: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
                 save_directory: str = '/Users/yaeger/Documents/Modules/Porphyria/results/testing',
-                metrics: list = [geometric_mean_score, f1_score, average_precision_score,
-                                 roc_auc_score, recall_score, precision_score,
-                                 balanced_accuracy_score],
-                results_file_name: str = 'test_set_results'):
+                metrics: list = [roc_auc_score],
+                results_file_name: str = 'test_set_results.csv'):
     """Wrapper method for running the tester on all of the models in a directory
     for an input list of evaluation metrics. Writes a .csv to a file named
     according to the results_file_name argument with columns specifying the name
@@ -111,9 +110,17 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
             writer = csv.writer(fh)
             writer.writerow([results_dict[name] for name in metric_names])
         
-    # Save paramters
-    param_directory = save_directory.joinpath(results_file_name + '_model_parameters')
-    pd.DataFrame.from_dict(param_dict).to_csv(param_directory, index = False)
+    # Put parameters into a dataframe
+    param_directory = save_directory.joinpath(results_file_name.split('.')[0] + '_model_parameters.csv')
+    params_df = pd.DataFrame.from_dict(param_dict)
+    
+    # Reorder so that model name is first column
+    new_columns = list(params_df.columns)
+    new_columns.pop(new_columns.index('model_name'))
+    new_columns.insert(0,'model_name')
+    params_df = params_df.reindex(columns = new_columns)
+    
+    params_df.to_csv(param_directory, index = False)
 
 if __name__ == "__main__":
     run_testing()

@@ -12,6 +12,7 @@ from pathlib import Path
 from sklearn.metrics import make_scorer
 import re
 import joblib
+from sklearn.pipeline import Pipeline
 
 class Tester():
     """Wrapper class for evaluating trained models on list of user-defined
@@ -90,12 +91,27 @@ class Tester():
         else:
             x = self.x
         
-        # Pre-process data if necessary
+        # Make into pipeline if preprocessing method
         if 'preprocessing_method' in params:
-            if params['preprocessing_method']:
-                preprocessing_params = {param: params[param] for param in params if \
+                pipeline_params = {}
+                
+                # Collect preprocessing params
+                steps = [('preprocessor', params['preprocessing_method'])]
+                preprocessing_params = {f'preprocessor__{param}': params[param] \
+                              for param in params['variable_type'] if \
                               params['variable_type'][param] == 'preprocessor'}
-                x = params['preprocessing_method'](**preprocessing_params)
+                pipeline_params.update(preprocessing_params)
+                
+                # Collect estimator params
+                steps.append(('estimator', model))
+                clf_params = model.get_params()
+                estimator_params = {f'estimator__{param}': clf_params[param] \
+                                    for param in clf_params}
+                pipeline_params.update(estimator_params)
+                
+                # Make pipeline
+                model = Pipeline(steps)
+                model.set_params(**pipeline_params)
                 
         # Get rankings and probabilities
         y_pred_rank = model.decision_function(x)

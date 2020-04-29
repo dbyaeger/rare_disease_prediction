@@ -53,7 +53,7 @@ def smote(x: np.ndarray,y: np.ndarray, sampling_strategy: float, k_neighbors: in
 
 def random_undersample_smote(x: np.ndarray,y: np.ndarray, 
                              sampling_strategy_1:float, sampling_strategy_2:float,
-                             k_neighbors: int, epsilon: float = 0.01):
+                             k_neighbors: int, epsilon: float = 0.1):
     """Returns array and labels for which the majority class of the input
     array has been randomly undersampled and then the minority class has been
     randomly oversampled using SMOTE technique. sampling_strategy_1
@@ -63,10 +63,8 @@ def random_undersample_smote(x: np.ndarray,y: np.ndarray,
     sampling_strategy_2 <= sampling_strategy_1, sampling_strategy_2 will be changed
     to sampling_strategy_1 + epsilon
     """
-    if (sampling_strategy_2 <= sampling_strategy_1) and sampling_strategy_1 <= 0.99:
+    if (sampling_strategy_2 <= sampling_strategy_1):
         sampling_strategy_2 = sampling_strategy_1 + epsilon
-    elif (sampling_strategy_2 <= sampling_strategy_1) and sampling_strategy_1 > 0.99:
-        sampling_strategy_2 = 1.0
     
     if not isinstance(k_neighbors, int): k_neighbors = int(k_neighbors)
     
@@ -108,11 +106,11 @@ def kmeans_adasyn(x: np.ndarray,y: np.ndarray, sampling_strategy: float,
     samples, n_neighbors are the number of neighbors to use when creating new
     synthetic minority samples.
     """
-     if not isinstance(n_neighbors, int): n_neighbors = int(n_neighbors)
+    if not isinstance(n_neighbors, int): n_neighbors = int(n_neighbors)
      
-     ada = ADASYN(sampling_strategy = sampling_strategy, n_neighbors = n_neighbors,
+    ada = ADASYN(sampling_strategy = sampling_strategy, n_neighbors = n_neighbors,
                   n_jobs = 4)
-     return ada.fit_resample(x,y)
+    return ada.fit_resample(x,y)
      
      
     

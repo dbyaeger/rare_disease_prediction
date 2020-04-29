@@ -117,10 +117,12 @@ class FaultDetectionKNN(BaseEstimator):
         """Returns the sum-of-square distances to the nearest n_neighbors for
         every row in X.
         """
-        if not isinstance(n_neighbors, int): n_neighbors = int(n_neighbors)
+        if not isinstance(n_neighbors, int): 
+            n_neighbors = int(n_neighbors)
         
-            distances = self.nn.kneighbors(X, n_neighbors = n_neighbors,
+        distances = self.nn.kneighbors(X, n_neighbors = n_neighbors,
                                     return_distance = True)[0]
+        
         return (distances*distances).sum(axis=1)
     
 class MahalanobisDistanceKNN(BaseEstimator):
