@@ -16,10 +16,9 @@ from sklearn.metrics import make_scorer, average_precision_score
 from sklearn.decomposition import PCA, KernelPCA
 from imblearn.under_sampling import (TomekLinks, OneSidedSelection, 
                                      RandomUnderSampler)
-
 from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE,
                                     ADASYN)
-
+from imblearn.ensemble import BalancedBaggingClassifier
 RANDOM_STATE = 10
 # parameters common to all models
 common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
@@ -245,6 +244,24 @@ shrink = {'classifier': SHRINK, 'model_name': 'SHRINK',
                                 'theta': 'estimator',
                                 'metric_performance_threshold': 'estimator'}}
 
+voting_svm = {'classifier': BalancedBaggingClassifier(base_estimator = SVC(kernel='rbf'), 
+                                                      n_jobs = 4, bootstrap = False,
+                                                       random_state = RANDOM_STATE), 
+              'model_name': 'BalancedVotingSVM', 
+             'preprocessing_method': None,
+              'sampling_method': None,
+              'log_normalize': True, 
+              'variables': ['sampling_strategy', 'n_estimators','C', 'gamma',
+                            'replacement'],
+              'distributions': ['uniform','quniform','uniform','loguniform',
+                                'choice'],
+              'arguments': [(0,1),(100,7000,1),(0, 100),(1e-3,1),(True,False)], 
+              'variable_type': {'sampling_strategy': 'estimator',
+                                'n_estimators': 'estimator',
+                                'C': 'base_estimator',
+                                'gamma': 'base_estimator',
+                                'replacement': 'estimator'}}
+
 
 def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #svc_one_sided,
@@ -256,6 +273,7 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #shrink,
                                               fd_knn,
                                               fd_knn_linear_pca,
+                                              voting_svm,
                                               fd_knn_radial_pca,
                                               mad_knn,
                                               mad_knn_linear_pca,

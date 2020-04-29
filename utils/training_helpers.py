@@ -112,12 +112,18 @@ class BayesianOptimizer():
         """
         self.iteration += 1
         
-        preprocessing_params, sampler_params, estimator_params = self._sort_params(params)
+        preprocessing_params, sampler_params, estimator_params, base_estimator_params \
+            = self._sort_params(params)
         
-        if not sampler_params and not preprocessing_params:
+        if not sampler_params and not preprocessing_params and not base_estimator_params:
             # if no sampling parameters, no need to sample
             metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
+        elif not sampler_params and not preprocessing_params and base_estimator_params:
+            estimator_params.update(base_estimator_params)
+            metric_result = repeated_cross_val(self.estimator, self.x, self.y, **estimator_params)
         else:
+            if base_estimator_params:
+                estimator_params.update(base_estimator_params)
             pipeline_classifier, pipeline_parameters = self.make_pipeline(preprocessing_params, sampler_params, estimator_params)
             metric_result = repeated_cross_val(pipeline_classifier, self.x, self.y, **pipeline_parameters)
         
@@ -153,7 +159,10 @@ class BayesianOptimizer():
         estimator_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'estimator'}
         
-        return preprocessing_params, sampler_params, estimator_params
+        base_estimator_params = {f'base_estimator__{param}': params[param] for param in params if \
+                              self.variable_type[param] == 'base_estimator'}
+        
+        return preprocessing_params, sampler_params, estimator_params, base_estimator_params
     
     def make_pipeline(self, preprocessing_params, sampler_params, estimator_params):
         """Assembles a pipeline allowing the steps to be cross-validated 
