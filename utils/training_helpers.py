@@ -17,10 +17,9 @@ from pathlib import Path
 from hyperopt import Trials, tpe, fmin
 from imblearn.pipeline import Pipeline
 
-def repeated_cross_val(estimator, x: np.ndarray, y: np.ndarray,
-                       metric: callable = make_scorer(geometric_mean_score), 
-                       repetitions: int = 5, cv_fold: int = 2,
-                       **params):
+def repeated_cross_val(estimator: callable, x: np.ndarray, y: np.ndarray,
+                       params: dict, metric: callable = make_scorer(geometric_mean_score), 
+                       repetitions: int = 5, cv_fold: int = 2):
     """Performs repeated cross-validation using the estimator, which must have
     a fit method.
     
@@ -36,7 +35,9 @@ def repeated_cross_val(estimator, x: np.ndarray, y: np.ndarray,
     """
     scores = []
     for rep in range(repetitions):
-        scores.extend(cross_val_score(estimator(**params),x,y,cv=cv_fold,scoring=metric,n_jobs =4))
+        print(estimator)
+        estimator.set_params(**params)
+        scores.extend(cross_val_score(estimator,x,y,cv=cv_fold,scoring=metric,n_jobs =4))
     return np.mean(scores)
 
 class BayesianOptimizer():
@@ -59,6 +60,8 @@ class BayesianOptimizer():
         arguments: arguments to each distribution-generating function as tuple
         variable_type: dictionary in which keys are variables and value is
             whether variable applies to estimator or sampler
+        parameters_with_integer_values: list of variable names that should be
+        set to integer values.
         
     Builds a .csv file at the path specified by savepath which can be used to
     find the best model parameters.
@@ -76,7 +79,9 @@ class BayesianOptimizer():
                  variables: list = ['C', 'gamma'],
                  distributions: list = ['loguniform','loguniform'],
                  arguments: list = [(0.1, 10),(1e-6,2)],
-                 variable_type: dict = {'C':'estimator','gamma':'estimator'}):
+                 variable_type: dict = {'C':'estimator','gamma':'estimator'},
+                 parameters_with_integer_values: list = ['n_estimators','K','k',
+                                                         'n_components']):
         self.sampler = sampler
         self.preprocessor = preprocessor
         self.x = x
@@ -92,40 +97,29 @@ class BayesianOptimizer():
         with savepath.open('w') as fh:
             writer = csv.writer(fh)
             writer.writerow(['loss', 'params', 'iteration'])
-            
+        
         self.iteration = 0
         self.bayes_trials = Trials()
         self.repetitions = repetitions
         self.cv_fold = cv_fold
+        self.parameters_with_integer_values = parameters_with_integer_values
         
         # create domain space
         self.space = self.create_domain_space(variables,distributions,arguments)
-        
-        # if sampler doesn't have parameters, just sample once
-        if self.sampler is not None:
-            if 'sampler' not in self.variable_type.values():
-                self.x, self.y = self.sampler(self.x, self.y)
            
-        
     def objective(self, params):
         """Objective function for Hyperparameter optimization
         """
         self.iteration += 1
         
-        preprocessing_params, sampler_params, estimator_params, base_estimator_params \
-            = self._sort_params(params)
+        preprocessing_params, sampler_params, estimator_params = self._sort_params(params)
         
-        if not sampler_params and not preprocessing_params and not base_estimator_params:
+        if not sampler_params and not preprocessing_params:
             # if no sampling parameters, no need to sample
-            metric_result = repeated_cross_val(self.estimator, self.x, self.y, **params)
-        elif not sampler_params and not preprocessing_params and base_estimator_params:
-            estimator_params.update(base_estimator_params)
-            metric_result = repeated_cross_val(self.estimator, self.x, self.y, **estimator_params)
+            metric_result = repeated_cross_val(self.estimator, self.x, self.y, estimator_params)
         else:
-            if base_estimator_params:
-                estimator_params.update(base_estimator_params)
             pipeline_classifier, pipeline_parameters = self.make_pipeline(preprocessing_params, sampler_params, estimator_params)
-            metric_result = repeated_cross_val(pipeline_classifier, self.x, self.y, **pipeline_parameters)
+            metric_result = repeated_cross_val(pipeline_classifier, self.x, self.y, pipeline_parameters)
         
         # make metric_result negative for optimization
         loss = 1 - metric_result
@@ -141,9 +135,16 @@ class BayesianOptimizer():
     def _sort_params(self, params, dictionize_cost: bool = True,
                      majority_class: int = -1, minority_class: int = 1):
         """Separates parameters into parameters for sampling method and those
-        for estimator. Returns sampler_params and estimator_params. Also handles
-        cost parameter.
+        for estimator. Also handles cost parameter and turns parameters named 
+        in the attribute parameters_with_integer_values into integer values.
+        Returns preprocessing_params, sampler_params, and estimator_params. 
         """
+        # convert parameters in parameters_with_integer_values into integers
+        for param in params:
+            if param in self.parameters_with_integer_values:
+                if not isinstance(params[param], int): 
+                    params[param] = int(params[param])
+        
         if dictionize_cost:
             if 'class_weight' in params:
                 # minority class has label of +1. Class weights must be in the form of a dictionary
@@ -159,10 +160,17 @@ class BayesianOptimizer():
         estimator_params = {param: params[param] for param in params if \
                               self.variable_type[param] == 'estimator'}
         
+        for param in estimator_params:
+            if param in ['n_estimators']:
+                estimator_params['n_estimators'] = int(estimator_params['n_estimators'])
+        
         base_estimator_params = {f'base_estimator__{param}': params[param] for param in params if \
                               self.variable_type[param] == 'base_estimator'}
         
-        return preprocessing_params, sampler_params, estimator_params, base_estimator_params
+        if base_estimator_params:
+            estimator_params.update(base_estimator_params)
+        
+        return preprocessing_params, sampler_params, estimator_params
     
     def make_pipeline(self, preprocessing_params, sampler_params, estimator_params):
         """Assembles a pipeline allowing the steps to be cross-validated 
@@ -197,10 +205,15 @@ class BayesianOptimizer():
         """
         x,y = self.x, self.y
         preprocessing_params, sampler_params, estimator_params = self._sort_params(params, dictionize_cost = False)
-        classifier = self.estimator(**estimator_params)
+        
+        classifier = self.estimator
+        self.estimator.set_params(**estimator_params)
         
         if preprocessing_params:
-            x = self.preprocessor(x, y, **preprocessing_params)
+            try:
+                x = self.preprocessor(x,y, **preprocessing_params)
+            except:
+                x = self.preprocessor(x, **preprocessing_params)
         
         if not sampler_params:
             # if no sampling parameters, no need to sample

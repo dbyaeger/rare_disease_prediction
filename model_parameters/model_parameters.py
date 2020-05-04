@@ -30,7 +30,7 @@ common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
                  'cv_fold': 2}
 
 # params for SVC with no sampling strategy
-svc = {'classifier': SVC, 'model_name': 'SVC', 'sampling_method': None,
+svc = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC', 'sampling_method': None,
               'preprocessing_method': None,
               'log_normalize': True, 
               'variables': ['C', 'gamma'],
@@ -39,7 +39,7 @@ svc = {'classifier': SVC, 'model_name': 'SVC', 'sampling_method': None,
               'variable_type': {'C':'estimator','gamma':'estimator'}}
 
 # params for SVC with TomekLinks sampling strategy
-svc_tomek_links = {'classifier': SVC, 'model_name': 'SVC_TomekLinks',
+svc_tomek_links = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_TomekLinks',
               'preprocessing_method': None,
               'sampling_method': TomekLinks(n_jobs=4),
               'log_normalize': True, 
@@ -49,7 +49,7 @@ svc_tomek_links = {'classifier': SVC, 'model_name': 'SVC_TomekLinks',
               'variable_type': {'C':'estimator','gamma':'estimator'}}
 
 # params for SVC with one-sided sampling strategy
-svc_one_sided = {'classifier': SVC, 'model_name': 'SVC_One_Sided_Selection',
+svc_one_sided = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_One_Sided_Selection',
               'preprocessing_method': None,
               'sampling_method': OneSidedSelection(n_jobs=4, random_state = RANDOM_STATE),
               'log_normalize': True, 
@@ -59,7 +59,7 @@ svc_one_sided = {'classifier': SVC, 'model_name': 'SVC_One_Sided_Selection',
               'variable_type': {'C':'estimator','gamma':'estimator'}}
 
 # params for simple random undersampling
-svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersample', 
+svc_random_undersample = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_Random_Undersample', 
               'preprocessing_method': None,
               'sampling_method': RandomUnderSampler(random_state = RANDOM_STATE),
               'log_normalize': True, 
@@ -70,7 +70,7 @@ svc_random_undersample = {'classifier': SVC, 'model_name': 'SVC_Random_Undersamp
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for adjusting class weights
-svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs',
+svc_cost =  {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_Different_Costs',
              'preprocessing_method': None,
               'sampling_method': None,
               'log_normalize': True, 
@@ -81,7 +81,7 @@ svc_cost =  {'classifier': SVC, 'model_name': 'SVC_Different_Costs',
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for SMOTE with no undersampling of majority class
-svc_SMOTE = {'classifier': SVC, 'model_name': 'SVC_SMOTE', 
+svc_SMOTE = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_SMOTE', 
              'preprocessing_method': None,
               'sampling_method': SMOTE(n_jobs=4, random_state = RANDOM_STATE),
               'log_normalize': True, 
@@ -93,7 +93,7 @@ svc_SMOTE = {'classifier': SVC, 'model_name': 'SVC_SMOTE',
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for SMOTE with different costs
-svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs', 
+svc_SMOTE_cost = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_SMOTE_Different_Costs', 
               'preprocessing_method': None,
               'sampling_method': SMOTE(n_jobs=4, random_state = RANDOM_STATE),
               'log_normalize': True, 
@@ -108,7 +108,7 @@ svc_SMOTE_cost = {'classifier': SVC, 'model_name': 'SVC_SMOTE_Different_Costs',
                                 'class_weight': 'estimator'}}
 
 # params for fault detection-KNN
-fd_knn = {'classifier': FaultDetectionKNN,
+fd_knn = {'classifier': FaultDetectionKNN(),
           'preprocessing_method': None,
           'model_name': 'Fault_Detection_KNN', 
           'sampling_method': None,
@@ -119,8 +119,8 @@ fd_knn = {'classifier': FaultDetectionKNN,
           'variable_type': {'k': 'estimator', 'alpha': 'estimator'}}
 
 # params for fault detection-KNN with linear pca
-fd_knn_linear_pca = {'classifier': FaultDetectionKNN,
-          'preprocessing_method': PCA,
+fd_knn_linear_pca = {'classifier': FaultDetectionKNN(),
+          'preprocessing_method': PCA(),
           'model_name': 'Fault_Detection_KNN_linear_PCA', 
           'sampling_method': None,
           'log_normalize': False, 
@@ -131,7 +131,7 @@ fd_knn_linear_pca = {'classifier': FaultDetectionKNN,
                             'n_components': 'preprocessor'}}
 
 # params for fault detection-KNN with radial PCA
-fd_knn_radial_pca = {'classifier': FaultDetectionKNN,
+fd_knn_radial_pca = {'classifier': FaultDetectionKNN(),
           'preprocessing_method': KernelPCA(kernel="rbf", eigen_solver = "arpack"),
           'model_name': 'Fault_Detection_KNN_Radial_PCA', 
           'sampling_method': None,
@@ -143,7 +143,7 @@ fd_knn_radial_pca = {'classifier': FaultDetectionKNN,
                             'n_components': 'preprocessor', 'gamma': 'preprocessor'}}
 
 # params for adaptive Mahalanobis distance-KNN
-mad_knn = {'classifier': MahalanobisDistanceKNN,
+mad_knn = {'classifier': MahalanobisDistanceKNN(),
           'preprocessing_method': None,
           'model_name': 'Mahalanobis_Distance_KNN', 
           'sampling_method': None,
@@ -155,7 +155,7 @@ mad_knn = {'classifier': MahalanobisDistanceKNN,
                             'alpha': 'estimator', 'precision_method': 'estimator'}}
 
 # params for adaptive Mahalanobis distance-KNN
-mad_knn_linear_pca = {'classifier': MahalanobisDistanceKNN,
+mad_knn_linear_pca = {'classifier': MahalanobisDistanceKNN(),
           'preprocessing_method': PCA,
           'model_name': 'Mahalanobis_Distance_KNN_Linear_PCA', 
           'sampling_method': None,
@@ -168,7 +168,7 @@ mad_knn_linear_pca = {'classifier': MahalanobisDistanceKNN,
                             'precision_method': 'estimator'}}
 
 # params for adaptive Mahalanobis distance-KNN
-mad_knn_radial_pca = {'classifier': MahalanobisDistanceKNN,
+mad_knn_radial_pca = {'classifier': MahalanobisDistanceKNN(),
           'preprocessing_method': KernelPCA(kernel="rbf", eigen_solver = "arpack"),
           'model_name': 'Mahalanobis_Distance_KNN_Radial_PCA', 
           'sampling_method': None,
@@ -183,7 +183,7 @@ mad_knn_radial_pca = {'classifier': MahalanobisDistanceKNN,
                             'gamma': 'preprocessor', 'precision_method': 'estimator'}}
 
 # params for random undersample and cost
-svc_random_undersample_cost = {'classifier': SVC, 
+svc_random_undersample_cost = {'classifier': SVC(kernel='rbf'), 
               'model_name': 'SVC_Random_Undersample_Different_Costs',
               'preprocessing_method': None,
               'sampling_method': RandomUnderSampler(random_state = RANDOM_STATE),
@@ -197,7 +197,7 @@ svc_random_undersample_cost = {'classifier': SVC,
                                 'sampling_strategy': 'sampler'}}
 
 # params for simple random oversampling
-svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample', 
+svc_random_oversample = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_Random_Oversample', 
               'sampling_method': RandomOverSampler(random_state = RANDOM_STATE), 
               'preprocessing_method': None,
               'log_normalize': True, 
@@ -208,7 +208,7 @@ svc_random_oversample = {'classifier': SVC, 'model_name': 'SVC_Random_Oversample
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for kmeans smote
-svc_KMeans_SMOTE = {'classifier': SVC, 'model_name': 'SVC_KMeans_SMOTE', 
+svc_KMeans_SMOTE = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_KMeans_SMOTE', 
              'preprocessing_method': None,
               'sampling_method': KMeansSMOTE(n_jobs=4, random_state = RANDOM_STATE),
               'log_normalize': True, 
@@ -222,7 +222,7 @@ svc_KMeans_SMOTE = {'classifier': SVC, 'model_name': 'SVC_KMeans_SMOTE',
                                 'C':'estimator','gamma':'estimator'}}
 
 
-svc_KMeans_ADASYN = {'classifier': SVC, 'model_name': 'SVC_KMeans_ADASYN', 
+svc_KMeans_ADASYN = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_KMeans_ADASYN', 
              'preprocessing_method': None,
               'sampling_method': ADASYN(n_jobs=4, random_state = RANDOM_STATE),
               'log_normalize': True, 
@@ -233,7 +233,7 @@ svc_KMeans_ADASYN = {'classifier': SVC, 'model_name': 'SVC_KMeans_ADASYN',
                                 'n_neighbors': 'sampler',
                                 'C':'estimator','gamma':'estimator'}}
 
-shrink = {'classifier': SHRINK, 'model_name': 'SHRINK', 
+shrink = {'classifier': SHRINK(), 'model_name': 'SHRINK', 
              'preprocessing_method': None,
               'sampling_method': None,
               'log_normalize': False, 
@@ -244,9 +244,9 @@ shrink = {'classifier': SHRINK, 'model_name': 'SHRINK',
                                 'theta': 'estimator',
                                 'metric_performance_threshold': 'estimator'}}
 
-voting_svm = {'classifier': BalancedBaggingClassifier(base_estimator = SVC(kernel='rbf'), 
+voting_svm = {'classifier': BalancedBaggingClassifier(base_estimator = SVC(),
                                                       n_jobs = 4, bootstrap = False,
-                                                       random_state = RANDOM_STATE), 
+                                                      random_state = RANDOM_STATE),
               'model_name': 'BalancedVotingSVM', 
              'preprocessing_method': None,
               'sampling_method': None,
@@ -271,11 +271,12 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #svc_SMOTE,
                                               #svc_SMOTE_cost,
                                               #shrink,
-                                              fd_knn,
+                                              #voting_svm,
+                                              #fd_knn,
                                               fd_knn_linear_pca,
-                                              voting_svm,
                                               fd_knn_radial_pca,
                                               mad_knn,
+                                              fd_knn,
                                               mad_knn_linear_pca,
                                               mad_knn_radial_pca,
                                               svc_KMeans_SMOTE,
@@ -286,5 +287,6 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
     for model_param in input_list: model_param.update(common_params)
     return input_list
 
-    
-              
+#(base_estimator = SVC(kernel='rbf'), 
+#                                                      n_jobs = 4, bootstrap = False,
+#                                                       random_state = RANDOM_STATE)

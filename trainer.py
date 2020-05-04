@@ -103,7 +103,7 @@ class Trainer():
                                distributions = self.distributions,
                                arguments = self.arguments,
                                variable_type = self.variable_type)
-        
+
         # Train
         bc.optimize_params()
         

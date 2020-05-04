@@ -39,7 +39,7 @@ class SHRINK(BaseEstimator):
                 classifier.
             
     """
-    def __init__(self, T: int, theta: float, metric: callable = make_scorer(geometric_mean_score),
+    def __init__(self, T: int = 10, theta: float = 5, metric: callable = make_scorer(geometric_mean_score),
                  metric_performance_threshold: float = 0.5):
         
         assert metric_performance_threshold < 1, "Metric performance threshold must be less than one"
@@ -68,12 +68,12 @@ class SHRINK(BaseEstimator):
         majority_label = sorted_label_tuples[-1][0]
                 
         #Instantiate labelers
-        self.classifiers = []
+        self.classifiers_ = []
         for feature in range(X.shape[1]):
             train_feature = X[:,feature]
             # Sometimes, especially with cross-validation, only 1 unique feature value
             if len(np.unique(train_feature[y == minority_label])) >= 2:
-                self.classifiers.append(RangeClassifierHandler(train_feature = train_feature, 
+                self.classifiers_.append(RangeClassifierHandler(train_feature = train_feature, 
                                       train_labels = y,
                                       minority_label = minority_label,
                                       majority_label = majority_label,
@@ -82,15 +82,15 @@ class SHRINK(BaseEstimator):
         
         #Train. First training for each classifier happens on instantiation
         for t in range(self.T-1):
-            for feature in range(len(self.classifiers)):
-                self.classifiers[feature].train()
+            for feature in range(len(self.classifiers_)):
+                self.classifiers_[feature].train()
                 
-        #Select best classifiers
-        for feature in range(len(self.classifiers)):
-            self.classifiers[feature].prune()
+        #Select best classifiers_
+        for feature in range(len(self.classifiers_)):
+            self.classifiers_[feature].prune()
             
         #If classifier weight less than metric_performance_threshold, set classifier weight to zero
-        for classifier in self.classifiers:
+        for classifier in self.classifiers_:
             if classifier.weight < self.metric_performance_threshold:
                 classifier.set_weight_to_zero()
                 
@@ -107,7 +107,7 @@ class SHRINK(BaseEstimator):
         """
         predictions = np.ones(X.shape[0])*majority_label
         
-        # Sum up predictions of classifiers
+        # Sum up predictions of classifiers_
         decision_sums = self.decision_function(X)
         
         # Where predictions >= lambda, set label to minority label
@@ -126,8 +126,8 @@ class SHRINK(BaseEstimator):
             distances: array of sum-of-square distances to k nearest neighbor
             for each observation in X.
         """
-        # Sum up predictions of classifiers
-        return np.array([clf.decision_function(X[:,clf.feature]) for clf in self.classifiers]).sum(axis = 0)
+        # Sum up predictions of classifiers_
+        return np.array([clf.decision_function(X[:,clf.feature]) for clf in self.classifiers_]).sum(axis = 0)
      
         
         

@@ -49,7 +49,7 @@ class FaultDetectionKNN(BaseEstimator):
         self.k = k
         self.alpha = alpha
         self.n_jobs = n_jobs
-        self.nn = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
+        self.nn_ = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
     
     def fit(self,X: np.ndarray,y: np.ndarray = None, majority_label: int = -1):
         """ Generates distribution of sum-of-square distance to k nearest
@@ -66,19 +66,19 @@ class FaultDetectionKNN(BaseEstimator):
             None
         """
         if y is not None:
-            self.train_X = X[y == majority_label,:].copy()
+            train_X = X[y == majority_label,:].copy()
         else:
-            self.train_X = X.copy()
+            train_X = X.copy()
             
-        self.nn.fit(self.train_X)
+        self.nn_.fit(train_X)
        
         # Get distances. Set k += 1 because in training at least one distance will be zero
-        distances = self.nn.kneighbors(self.train_X, n_neighbors = self.k + 1,
+        distances = self.nn_.kneighbors(train_X, n_neighbors = self.k + 1,
                                     return_distance = True)[0]
         # Calculate sum of square distances
         sum_of_square_distances = (distances*distances).sum(axis=1)
         # set threshold value based on prediction
-        self.threshold = np.quantile(sum_of_square_distances, 1-self.alpha)
+        self.threshold_ = np.quantile(sum_of_square_distances, 1-self.alpha)
     
     def decision_function(self, X: np.ndarray):
         """Returns sum-of-square distances to k nearest neighbors based on
@@ -92,7 +92,7 @@ class FaultDetectionKNN(BaseEstimator):
             for each observation in X.
         """
         # Get distances
-        distances = self.nn.kneighbors(X, n_neighbors = self.k,
+        distances = self.nn_.kneighbors(X, n_neighbors = self.k,
                                     return_distance = True)[0]
         # Calculate sum of square distances
         return (distances*distances).sum(axis=1)
@@ -110,7 +110,7 @@ class FaultDetectionKNN(BaseEstimator):
         """
         pred_y = np.ones(X.shape[0])*majority_label
         sum_of_square_distances = self.decision_function(X)
-        pred_y[sum_of_square_distances > self.threshold] = outlier_label
+        pred_y[sum_of_square_distances > self.threshold_] = outlier_label
         return pred_y
     
     def kneighbors(self, X: np.ndarray, n_neighbors: int = 5) -> np.ndarray:
@@ -120,7 +120,7 @@ class FaultDetectionKNN(BaseEstimator):
         if not isinstance(n_neighbors, int): 
             n_neighbors = int(n_neighbors)
         
-        distances = self.nn.kneighbors(X, n_neighbors = n_neighbors,
+        distances = self.nn_.kneighbors(X, n_neighbors = n_neighbors,
                                     return_distance = True)[0]
         
         return (distances*distances).sum(axis=1)
@@ -159,23 +159,24 @@ class MahalanobisDistanceKNN(BaseEstimator):
                  precision_method = 'LedoitWolf', n_jobs: int = 4):
         assert 0 < alpha < 1, "alpha must be between 0 and 1!"
         assert 1 < k < K, "K and k must be greater than 1 and K must be greater than k!"
-        
-        # Make sure k and K are integers
-        if not isinstance(k,int): k = int(k)
-        if not isinstance(K,int): k = int(K)
-        
-        
+                
+        # sci-kit learn constructor cannot modify values set by user        
         self.K = K
         self.k = k
         self.alpha = alpha
         self.n_jobs = n_jobs
         
+        # "... constructor in an estimator should only set attributes to the values 
+        # the user passes as arguments. All All computation should occur in fit,
+        # and if fit needs to store the result of a computation, 
+        # it should do so in an attribute with a trailing underscore (_)."
+        # https://stackoverflow.com/questions/24510510/python-scikit-learn-cannot-clone-object-as-the-constructor-does-not-seem-to
         if precision_method == 'LedoitWolf':
-            self.precision_method = LedoitWolf
+            self.precision_method_ = LedoitWolf
         elif precision_method == 'MinCovDet':
-            self.precision_method = MinCovDet
+            self.precision_method_ = MinCovDet
         
-        self.nn = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
+        self.nn_ = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
     
     def fit(self,X: np.ndarray,y: np.ndarray= None, majority_label: int = -1):
         """ Generates distribution of sum-of-square distance to k nearest
@@ -192,17 +193,17 @@ class MahalanobisDistanceKNN(BaseEstimator):
             None
         """
         if y is not None:
-            self.train_X = X[y == majority_label,:].copy()
+            self.train_X_ = X[y == majority_label,:].copy()
         else:
-            self.train_X = X.copy()
+            self.train_X_ = X.copy()
         
         # Find sum of distances to nearest neighbor in mahalanobis distances
-        sum_of_mahalanobis_distances = self.get_mahalanobis_distances(X = self.train_X,
+        sum_of_mahalanobis_distances = self.get_mahalanobis_distances(X = self.train_X_,
                                                                  train_mode = True,
                                                                  k = self.k)
 
         # set threshold value based on prediction
-        self.threshold = np.quantile(sum_of_mahalanobis_distances, 1-self.alpha)
+        self.threshold_ = np.quantile(sum_of_mahalanobis_distances, 1-self.alpha)
     
     def kneighbors(self, X: np.ndarray, n_neighbors: int = 5) -> np.ndarray:
         """Returns the sum-of-square distances to the nearest n_neighbors for
@@ -232,7 +233,7 @@ class MahalanobisDistanceKNN(BaseEstimator):
         sum_of_mahalanobis_distances = self.get_mahalanobis_distances(X = X,
                                                                  train_mode = False,
                                                                  k = self.k)
-        pred_y[sum_of_mahalanobis_distances > self.threshold] = outlier_label
+        pred_y[sum_of_mahalanobis_distances > self.threshold_] = outlier_label
         return pred_y
 
     def decision_function(self, X: np.ndarray):
@@ -256,14 +257,14 @@ class MahalanobisDistanceKNN(BaseEstimator):
         """
         # fit on training data if train_mode = True
         if train_mode:
-            self.nn.fit(X)
+            self.nn_.fit(X)
             K = self.K + 1
             k = self.k + 1
         else:
             K = self.K 
         
         # Find nearest samples
-        nearest_neighbors = self.nn.kneighbors(X, n_neighbors = K,
+        nearest_neighbors = self.nn_.kneighbors(X, n_neighbors = K,
                                     return_distance = False)
         if train_mode:
             # The first entry in each row is the sample itself
@@ -273,14 +274,14 @@ class MahalanobisDistanceKNN(BaseEstimator):
         precision_matrices = np.zeros((nearest_neighbors.shape[0], X.shape[1], X.shape[1]))
         
         for i in range(nearest_neighbors.shape[0]):
-            precision_matrices[i,:,:] = self.precision_method().fit(
+            precision_matrices[i,:,:] = self.precision_method_().fit(
                     X[nearest_neighbors[i,:],:]).get_precision()
         
         # Find sum of distances to nearest neighbor in mahalanobis distances
         sum_of_distances = np.zeros(X.shape[0])
         for i in range(X.shape[0]):
             mahalanobis_distances = mahalanobis(sample_to_score = X[i,:],
-                                        reference_array = self.train_X,
+                                        reference_array = self.train_X_,
                                         precision_matrix = precision_matrices[i,:,:])
             # Use k-1 because first index counted as zero
             sum_of_distances[i] = np.partition(mahalanobis_distances,k-1)[0:k].sum()
