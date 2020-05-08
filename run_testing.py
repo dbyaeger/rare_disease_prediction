@@ -26,21 +26,23 @@ def update_param_dict(new_dict: dict, master_dict: dict):
     if not master_dict:
         master_dict = {key: [new_dict[key]] for key in new_dict}
     else:
+        # first create model_name
+        master_dict['model_name'].append(new_dict['model_name'])
         for key in new_dict:
-            if key in master_dict:
+            if key in master_dict and key != 'model_name':
                 try:
                     master_dict[key].append(new_dict[key])
                 except:
                     master_dict[key].extend(new_dict[key])
-            else:
-                max_len = max([len(master_dict[key]) for key in master_dict])
+            elif key not in master_dict and key != 'model_name':
+                max_len = len(master_dict['model_name'])
                 master_dict[key] = [np.nan]*(max_len-1)
                 try:
                     master_dict[key].append(new_dict[key])
                 except:
                     master_dict[key].extend(new_dict[key])
     # Ensure that np.nans are added to all entries to keep length the same
-    max_len = max([len(master_dict[key]) for key in master_dict])
+    max_len = len(master_dict['model_name'])
     for key in master_dict:
         len_mismatch = max_len - len(master_dict[key])
         if len_mismatch > 0:
@@ -114,6 +116,7 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
             continue
         
     # Put parameters into a dataframe
+    print(param_dict)
     param_directory = save_directory.joinpath(results_file_name.split('.')[0] + '_model_parameters.csv')
     params_df = pd.DataFrame.from_dict(param_dict)
     
