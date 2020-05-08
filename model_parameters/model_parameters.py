@@ -8,7 +8,7 @@ Created on Sun Mar 22 13:41:35 2020
 Set of functions and commands to create, run, and save each model.
 """
 
-from sklearn.svm import SVC
+from sklearn.svm import SVC, OneClassSVM
 from instance_methods.InstanceMethods import FaultDetectionKNN, MahalanobisDistanceKNN
 from shrink.shrink import SHRINK
 from imblearn.metrics import geometric_mean_score
@@ -19,6 +19,8 @@ from imblearn.under_sampling import (TomekLinks, OneSidedSelection,
 from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE,
                                     ADASYN)
 from imblearn.ensemble import BalancedBaggingClassifier
+from samplers.samplers import ReturnMajority, ReturnMinority
+
 RANDOM_STATE = 10
 # parameters common to all models
 common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
@@ -115,7 +117,7 @@ fd_knn = {'classifier': FaultDetectionKNN(),
           'log_normalize': True, 
           'variables': ['k','alpha'],
           'distributions': ['quniform','uniform'],
-          'arguments': [(2,500,1),(0,0.01)], 
+          'arguments': [(2,250,1),(0,0.01)], 
           'variable_type': {'k': 'estimator', 'alpha': 'estimator'}}
 
 # params for fault detection-KNN with linear pca
@@ -126,7 +128,7 @@ fd_knn_linear_pca = {'classifier': FaultDetectionKNN(),
           'log_normalize': False, 
           'variables': ['k','alpha', 'n_components'],
           'distributions': ['quniform','uniform', 'quniform'],
-          'arguments': [(2,500,1),(0,0.01),(1,139,1)], 
+          'arguments': [(2,200,1),(0,0.01),(1,139,1)], 
           'variable_type': {'k': 'estimator', 'alpha': 'estimator',
                             'n_components': 'preprocessor'}}
 
@@ -138,7 +140,7 @@ fd_knn_radial_pca = {'classifier': FaultDetectionKNN(),
           'log_normalize': False, 
           'variables': ['k','alpha', 'n_components','gamma'],
           'distributions': ['quniform','uniform', 'quniform','loguniform'],
-          'arguments': [(2,500,1),(0,0.01),(1,139,1),(1e-6,300)], 
+          'arguments': [(2,200,1),(0,0.01),(1,100,1),(1e-6,300)], 
           'variable_type': {'k': 'estimator', 'alpha': 'estimator',
                             'n_components': 'preprocessor', 'gamma': 'preprocessor'}}
 
@@ -191,7 +193,7 @@ svc_random_undersample_cost = {'classifier': SVC(kernel='rbf'),
               'variables': ['class_weight','C', 'gamma', 
                             'sampling_strategy'],
               'distributions': ['uniform','uniform','loguniform','uniform'],
-              'arguments': [(1,1e6),(0, 100),(1e-3,3),(0,1)], 
+              'arguments': [(1,1e6),(0, 100),(1e-3,10),(0,1)], 
               'variable_type': {'class_weight': 'estimator',
                                 'C':'estimator','gamma':'estimator',
                                 'sampling_strategy': 'sampler'}}
@@ -262,6 +264,24 @@ voting_svm = {'classifier': BalancedBaggingClassifier(base_estimator = SVC(),
                                 'gamma': 'base_estimator',
                                 'replacement': 'estimator'}}
 
+ovc_minority = {'classifier': OneClassSVM(kernel='rbf'), 'model_name': 'One_Class_SVM_Minority', 
+              'sampling_method': ReturnMinority(), 
+              'preprocessing_method': None,
+              'log_normalize': True, 
+              'variables': ['gamma','nu'],
+              'distributions': ['loguniform','uniform'],
+              'arguments': [(1e-6,10),(0, 1)], 
+              'variable_type': {'nu':'estimator','gamma':'estimator'}}
+
+ovc_majority = {'classifier': OneClassSVM(kernel='rbf'), 'model_name': 'One_Class_SVM_Majority', 
+              'sampling_method': ReturnMajority(), 
+              'preprocessing_method': None,
+              'log_normalize': True, 
+              'variables': ['gamma','nu'],
+              'distributions': ['loguniform','uniform'],
+              'arguments': [(1e-6,10),(0, 1)], 
+              'variable_type': {'nu':'estimator','gamma':'estimator'}}
+
 
 def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #svc_one_sided,
@@ -272,11 +292,13 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #svc_SMOTE_cost,
                                               #shrink,
                                               #voting_svm,
-                                              #fd_knn,
-                                              fd_knn_linear_pca,
-                                              fd_knn_radial_pca,
+                                              #fd_knn_linear_pca,
+                                              svc_random_undersample,
+                                              svc_random_undersample_cost,
+                                              ovc_minority,
+                                              ovc_majority,
+                                              #fd_knn_radial_pca,
                                               mad_knn,
-                                              fd_knn,
                                               mad_knn_linear_pca,
                                               mad_knn_radial_pca,
                                               svc_KMeans_SMOTE,

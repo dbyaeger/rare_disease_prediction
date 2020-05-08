@@ -84,44 +84,45 @@ class Trainer():
                                         make_directory = False), 
                                         log_normalize)
         self.log_normalize = log_normalize
-    
-    def train_and_save_model(self):
-        """ Wrapper method to find the best parameters, retrain model using the
-        best parameters, and save the model
-        """
-        # Set savepath to include model name
-        savepath = self.save_training_data_path.joinpath(self.model_name)
-        
-        # Instantiate new bayesian optimizer
-        bc = BayesianOptimizer(estimator = self.classifier, x = self.x, 
+         
+        self.bc = BayesianOptimizer(estimator = self.classifier, x = self.x, 
                                y = self.y, metric = self.metric,
                                sampler = self.sampling_method,
                                preprocessor = self.preprocessing_method,
-                               savepath = savepath,
+                               savepath = self.save_training_data_path.joinpath(self.model_name),
                                max_evals = self.max_evals, cv_fold = self.cv_fold,
                                variables = self.variables,
                                distributions = self.distributions,
                                arguments = self.arguments,
                                variable_type = self.variable_type)
-
+    
+    def optimize_train_and_save_model(self):
+        """ Wrapper method to find the best parameters, retrain model using the
+        best parameters, and save the model
+        """
         # Train
-        bc.optimize_params()
+        self.bc.optimize_params()
         
         # Find the best model and retrain using best parameters
         # bc.results is dictionary with loss and model parameters
-        sorted_params_by_loss = sorted(bc.results, key = lambda x: x['loss'])
+        sorted_params_by_loss = sorted(self.bc.results, key = lambda x: x['loss'])
         
         # get best parameters
         best_params = sorted_params_by_loss[0]['params']
+        
+        self.train_and_save_model(best_params)
+    
+    def train_and_save_model(self, best_params):
+        """ Trains a model using the parameters in best_params and saves the
+        model."""
         
         # print best params
         for param in best_params:
             print(f'best value of {param}: {best_params[param]}')
         
         # Retrain model using best parameters
-        classifer = bc.train_and_return_model(best_params)
-        print(f'Value of metric on entire train set for best model: \
-              {self.metric(classifer,self.x,self.y)}')
+        classifer = self.bc.train_and_return_model(best_params, 
+                                                   print_training_metric = True)
         
         # Get training parameters
         training_params = self.make_param_dict(best_params)

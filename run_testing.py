@@ -104,11 +104,14 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
     for model_path in path_to_models.iterdir():
         if model_path.name == '.DS_Store':
             continue
-        results_dict, parameters = tester.evaluate_model(model_path)
-        param_dict = update_param_dict(parameters, param_dict)
-        with save_path.open('a') as fh:
-            writer = csv.writer(fh)
-            writer.writerow([results_dict[name] for name in metric_names])
+        try:
+            results_dict, parameters = tester.evaluate_model(model_path)
+            param_dict = update_param_dict(parameters, param_dict)
+            with save_path.open('a') as fh:
+                writer = csv.writer(fh)
+                writer.writerow([results_dict[name] for name in metric_names])
+        except:
+            continue
         
     # Put parameters into a dataframe
     param_directory = save_directory.joinpath(results_file_name.split('.')[0] + '_model_parameters.csv')

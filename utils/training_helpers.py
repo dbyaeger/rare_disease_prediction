@@ -199,30 +199,47 @@ class BayesianOptimizer():
         
         return Pipeline(steps), pipeline_params
         
-    def train_and_return_model(self, params):
+    def train_and_return_model(self, params: dict, print_training_metric: bool = True):
         """Method to train model on full dataset with selected parameters,
-        evaluate metric on training set, and return the model.
+        evaluate metric on training set, and return the model. If 
+        print_training_metric set to True, will also print the performance of
+        the model on the training set.
         """
         x,y = self.x, self.y
         preprocessing_params, sampler_params, estimator_params = self._sort_params(params, dictionize_cost = False)
         
-        classifier = self.estimator
+        #classifier = self.estimator
         self.estimator.set_params(**estimator_params)
         
         if preprocessing_params:
+            self.preprocessor.set_params(**preprocessing_params)
             try:
-                x = self.preprocessor(x,y, **preprocessing_params)
+                x = self.preprocessor.fit_transform(x,y)
             except:
-                x = self.preprocessor(x, **preprocessing_params)
+                x = self.preprocessor.fit_transform(x)
         
         if not sampler_params:
             # if no sampling parameters, no need to sample
-            classifier.fit(x,y)
+            self.estimator.fit(x,y)
         else:
-            x,y = self.sampler(x, y, **sampler_params)            
-            classifier.fit(x,y)
+            self.sampler.set_params(**sampler_params)
+            x,y = self.fit_resample(x, y)            
+            self.estimator.fit(x,y)
         
-        return classifier
+        # Evaluate metric on train set
+        if print_training_metric:
+            
+            if preprocessing_params:
+                self.preprocessor.set_params(**preprocessing_params)
+                try:
+                    x = self.preprocessor.fit_transform(self.x,self.y)
+                except:
+                    x = self.preprocessor.fit_transform(self.x)
+                    
+            print(f'Value of metric on entire train set for best model: \
+                  {self.metric(self.estimator,x,y)}')
+            
+        return self.estimator
            
     def optimize_params(self):
         """ Wrapper method for fmin function in hyperopt package 

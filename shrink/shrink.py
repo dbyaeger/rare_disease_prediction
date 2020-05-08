@@ -44,9 +44,6 @@ class SHRINK(BaseEstimator):
         
         assert metric_performance_threshold < 1, "Metric performance threshold must be less than one"
         
-        if not isinstance(T, int):
-            T = int(T)
-        
         self.T = T
         self.metric = metric
         self.theta = theta

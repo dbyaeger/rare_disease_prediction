@@ -16,7 +16,7 @@ def run_training():
     model_parameter_list = make_model_param_list()
     for model_params in model_parameter_list:
         model_trainer = Trainer(**model_params)
-        model_trainer.train_and_save_model()
+        model_trainer.optimize_train_and_save_model()
 
 if __name__ == "__main__":
     run_training()
