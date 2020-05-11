@@ -223,7 +223,7 @@ class BayesianOptimizer():
             self.estimator.fit(x,y)
         else:
             self.sampler.set_params(**sampler_params)
-            x,y = self.fit_resample(x, y)            
+            x,y = self.sampler.fit_resample(x, y)            
             self.estimator.fit(x,y)
         
         # Evaluate metric on train set
