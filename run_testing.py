@@ -116,7 +116,6 @@ def run_testing(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
             continue
         
     # Put parameters into a dataframe
-    print(param_dict)
     param_directory = save_directory.joinpath(results_file_name.split('.')[0] + '_model_parameters.csv')
     params_df = pd.DataFrame.from_dict(param_dict)
     
