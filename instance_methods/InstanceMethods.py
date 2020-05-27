@@ -5,7 +5,7 @@ Created on Mon Mar 23 12:31:20 2020
 
 @author: danielyaeger
 """
-from sklearn.covariance import MinCovDet, LedoitWolf
+from sklearn.covariance import MinCovDet, LedoitWolf, EmpiricalCovariance
 from sklearn.neighbors import NearestNeighbors
 from instance_methods.instance_method_helpers import mahalanobis
 import numpy as np
@@ -155,8 +155,7 @@ class MahalanobisDistanceKNN(BaseEstimator):
         sum-of-square distances of each point's k nearest neighbors
 
     """
-    def __init__(self, K: int = 500, k: int = 3, alpha: float = 0.01, 
-                 precision_method = 'LedoitWolf', n_jobs: int = 4):
+    def __init__(self, K: int = 500, k: int = 3, alpha: float = 0.01, n_jobs: int = 4):
         assert 0 < alpha < 1, "alpha must be between 0 and 1!"
         assert 1 < k < K, "K and k must be greater than 1 and K must be greater than k!"
                 
@@ -171,10 +170,7 @@ class MahalanobisDistanceKNN(BaseEstimator):
         # and if fit needs to store the result of a computation, 
         # it should do so in an attribute with a trailing underscore (_)."
         # https://stackoverflow.com/questions/24510510/python-scikit-learn-cannot-clone-object-as-the-constructor-does-not-seem-to
-        if precision_method == 'LedoitWolf':
-            self.precision_method_ = LedoitWolf
-        elif precision_method == 'MinCovDet':
-            self.precision_method_ = MinCovDet
+        self.precision_method_ = EmpiricalCovariance
         
         self.nn_ = NearestNeighbors(metric = 'euclidean', n_jobs = self.n_jobs)
     
@@ -270,21 +266,24 @@ class MahalanobisDistanceKNN(BaseEstimator):
             # The first entry in each row is the sample itself
             nearest_neighbors = nearest_neighbors[:,1:]
         
-        # Compute precision matrices
-        precision_matrices = np.zeros((nearest_neighbors.shape[0], X.shape[1], X.shape[1]))
         
-        for i in range(nearest_neighbors.shape[0]):
-            precision_matrices[i,:,:] = self.precision_method_().fit(
-                    X[nearest_neighbors[i,:],:]).get_precision()
-        
-        # Find sum of distances to nearest neighbor in mahalanobis distances
         sum_of_distances = np.zeros(X.shape[0])
+        
         for i in range(X.shape[0]):
-            mahalanobis_distances = mahalanobis(sample_to_score = X[i,:],
-                                        reference_array = self.train_X_,
-                                        precision_matrix = precision_matrices[i,:,:])
-            # Use k-1 because first index counted as zero
-            sum_of_distances[i] = np.partition(mahalanobis_distances,k-1)[0:k].sum()
+            
+            # Compute precision matrix
+            precision_matrix = self.precision_method_().fit(
+                    X[nearest_neighbors[i,:],:]).get_precision()
+            
+            if not (precision_matrix == 0).all():
+
+                mahalanobis_distances = mahalanobis(sample_to_score = X[i,:],
+                                                    reference_array = self.train_X_,
+                                                    precision_matrix = precision_matrix)
+                
+                # Use k-1 because first index counted as zero
+                sum_of_distances[i] = np.partition(mahalanobis_distances,k-1)[0:k].sum()
+        
         return sum_of_distances
         
     

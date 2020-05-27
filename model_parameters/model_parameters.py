@@ -20,6 +20,7 @@ from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE,
                                     ADASYN)
 from imblearn.ensemble import BalancedBaggingClassifier
 from samplers.samplers import ReturnMajority, ReturnMinority
+from sklearn.covariance import MinCovDet, LedoitWolf
 
 RANDOM_STATE = 10
 # parameters common to all models
@@ -150,11 +151,11 @@ mad_knn = {'classifier': MahalanobisDistanceKNN(),
           'model_name': 'Mahalanobis_Distance_KNN', 
           'sampling_method': None,
           'log_normalize': False, 
-          'variables': ['K','k','alpha','precision_method'],
-          'distributions': ['quniform','quniform','uniform','choice'],
-          'arguments': [(10,2000,1),(2,500,1),(0,0.01),('MinCovDet', 'LedoitWolf')], 
+          'variables': ['K','k','alpha'],
+          'distributions': ['quniform','quniform','uniform'],
+          'arguments': [(10,2000,1),(2,500,1),(0,0.01)], 
           'variable_type': {'K': 'estimator', 'k': 'estimator', 
-                            'alpha': 'estimator', 'precision_method': 'estimator'}}
+                            'alpha': 'estimator'}}
 
 # params for adaptive Mahalanobis distance-KNN
 mad_knn_linear_pca = {'classifier': MahalanobisDistanceKNN(),
@@ -162,12 +163,11 @@ mad_knn_linear_pca = {'classifier': MahalanobisDistanceKNN(),
           'model_name': 'Mahalanobis_Distance_KNN_Linear_PCA', 
           'sampling_method': None,
           'log_normalize': False, 
-          'variables': ['K','k','alpha','n_components','precision_method'],
-          'distributions': ['quniform','quniform','uniform','quniform','choice'],
-          'arguments': [(10,2000,1),(2,500,1),(0,0.01),(1,139,1),('MinCovDet', 'LedoitWolf')], 
+          'variables': ['K','k','alpha','n_components'],
+          'distributions': ['quniform','quniform','uniform','quniform'],
+          'arguments': [(10,2000,1),(2,500,1),(0,0.01),(1,139,1)], 
           'variable_type': {'K': 'estimator', 'k': 'estimator', 
-                            'alpha': 'estimator', 'n_components': 'preprocessor',
-                            'precision_method': 'estimator'}}
+                            'alpha': 'estimator', 'n_components': 'preprocessor'}}
 
 # params for adaptive Mahalanobis distance-KNN
 mad_knn_radial_pca = {'classifier': MahalanobisDistanceKNN(),
@@ -179,7 +179,7 @@ mad_knn_radial_pca = {'classifier': MahalanobisDistanceKNN(),
           'distributions': ['quniform','quniform','uniform','quniform','loguniform',
                             'choice'],
           'arguments': [(10,2000,1),(2,500,1),(0,0.01),(1,139,1),(1e-6,300),
-                        ('MinCovDet', 'LedoitWolf')], 
+                        (MinCovDet, LedoitWolf)], 
           'variable_type': {'K': 'estimator', 'k': 'estimator',
                             'alpha': 'estimator', 'n_components': 'preprocessor',
                             'gamma': 'preprocessor', 'precision_method': 'estimator'}}
@@ -293,14 +293,14 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #shrink,
                                               #voting_svm,
                                               #fd_knn_linear_pca,
-                                              svc_random_undersample,
-                                              svc_random_undersample_cost,
-                                              ovc_minority,
-                                              ovc_majority,
+                                              #svc_random_undersample,
+                                              #svc_random_undersample_cost,
+                                              #ovc_minority,
+                                              #ovc_majority,
                                               #fd_knn_radial_pca,
                                               mad_knn,
                                               mad_knn_linear_pca,
-                                              mad_knn_radial_pca,
+                                              #mad_knn_radial_pca,
                                               svc_KMeans_SMOTE,
                                               svc_KMeans_ADASYN,
                                               svc_SMOTE_cost,
