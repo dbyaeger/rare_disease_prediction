@@ -80,7 +80,7 @@ class BayesianOptimizer():
                  distributions: list = ['loguniform','loguniform'],
                  arguments: list = [(0.1, 10),(1e-6,2)],
                  variable_type: dict = {'C':'estimator','gamma':'estimator'},
-                 parameters_with_integer_values: list = ['n_estimators','K','k',
+                 parameters_with_integer_values: list = ['n_estimators','K','k','n_neighbors',
                                                          'n_components', 'k_neighbors']):
         self.sampler = sampler
         self.preprocessor = preprocessor

@@ -210,18 +210,15 @@ svc_random_oversample = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_Ran
                                 'C':'estimator','gamma':'estimator'}}
 
 # params for kmeans smote
-svc_KMeans_SMOTE = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_KMeans_SMOTE', 
-             'preprocessing_method': None,
-              'sampling_method': KMeansSMOTE(n_jobs=4, random_state = RANDOM_STATE),
-              'log_normalize': True, 
-              'variables': ['sampling_strategy','k_neighbors','cluster_balance_threshold',
-                            'C', 'gamma'],
-              'distributions': ['uniform','quniform','uniform','uniform','loguniform'],
-              'arguments': [(0,1),(1,10,1),(0.1,3),(0, 100),(1e-3,3)], 
-              'variable_type': {'sampling_strategy': 'sampler',
-                                'k_neighbors': 'sampler',
-                                'cluster_balance_threshold': 'sampler',
-                                'C':'estimator','gamma':'estimator'}}
+#svc_SMOTE_Borderline = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_KMeans_SMOTE', 
+#             'preprocessing_method': None,
+#              'sampling_method': KMeansSMOTE(n_jobs=4, random_state = RANDOM_STATE),
+#              'log_normalize': True, 
+#              'variables': ['sampling_strategy', 'C', 'gamma'],
+#              'distributions': ['uniform', 'uniform','loguniform'],
+#              'arguments': [(0,1),(0, 100),(1e-3,3)], 
+#              'variable_type': {'sampling_strategy': 'sampler',
+#                                'C':'estimator','gamma':'estimator'}}
 
 
 svc_KMeans_ADASYN = {'classifier': SVC(kernel='rbf'), 'model_name': 'SVC_KMeans_ADASYN', 
@@ -264,17 +261,9 @@ voting_svm = {'classifier': BalancedBaggingClassifier(base_estimator = SVC(),
                                 'gamma': 'base_estimator',
                                 'replacement': 'estimator'}}
 
+
 ovc_minority = {'classifier': OneClassSVM(kernel='rbf'), 'model_name': 'One_Class_SVM_Minority', 
               'sampling_method': ReturnMinority(), 
-              'preprocessing_method': None,
-              'log_normalize': True, 
-              'variables': ['gamma','nu'],
-              'distributions': ['loguniform','uniform'],
-              'arguments': [(1e-6,10),(0, 1)], 
-              'variable_type': {'nu':'estimator','gamma':'estimator'}}
-
-ovc_majority = {'classifier': OneClassSVM(kernel='rbf'), 'model_name': 'One_Class_SVM_Majority', 
-              'sampling_method': ReturnMajority(), 
               'preprocessing_method': None,
               'log_normalize': True, 
               'variables': ['gamma','nu'],
@@ -295,16 +284,16 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #fd_knn_linear_pca,
                                               #svc_random_undersample,
                                               #svc_random_undersample_cost,
-                                              #ovc_minority,
+                                              ovc_minority],
                                               #ovc_majority,
                                               #fd_knn_radial_pca,
-                                              mad_knn,
-                                              mad_knn_linear_pca,
+                                              #mad_knn,
+                                              #mad_knn_linear_pca,
                                               #mad_knn_radial_pca,
-                                              svc_KMeans_SMOTE,
-                                              svc_KMeans_ADASYN,
-                                              svc_SMOTE_cost,
-                                              svc_random_oversample],
+                                              #svc_KMeans_SMOTE,
+                                              #svc_KMeans_ADASYN,
+                                              #svc_SMOTE_cost,
+                                              #svc_random_oversample],
                     common_params: dict = common_params):
     for model_param in input_list: model_param.update(common_params)
     return input_list

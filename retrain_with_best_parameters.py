@@ -11,9 +11,9 @@ from model_parameters.model_parameters import make_model_param_list
 
 
 def run_retraining(params = {
-                            'Mahalanobis_Distance_KNN': {'K':1201,
-                                                         'k': 498,
-                                                         'alpha': 0.005845451820124326}}):
+                            'SHRINK': {'T':6,
+                                       'theta': 2.362019470562436,
+                                       'metric_performance_threshold': 0.39466384745197064}}):
     """wrapper function for TrainingMain. Creates list of parameterized models
     using the make_model_param_list function and then trains each model
     using the train_and_save_model method of the TrainingMain class.

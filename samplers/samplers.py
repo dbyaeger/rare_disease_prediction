@@ -54,7 +54,7 @@ class ReturnMinority(RandomUnderSampler):
         #Find minority and majority labels
         label_key_counts = [(k,v) for (k,v) in Counter(list(y)).items()]
         sorted_label_tuples = sorted(label_key_counts, key = lambda x: x[1])
-        minority_label = sorted_label_tuples[-1][0]
+        minority_label = sorted_label_tuples[0][0]
         
         return X[y == minority_label,:], y[y == minority_label]
         
