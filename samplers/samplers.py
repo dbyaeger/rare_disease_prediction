@@ -13,8 +13,8 @@ from collections import Counter
 class ReturnMajority(RandomUnderSampler):
     """Wrapper for BaseUnderSampler class but overloads fit_resample method
     to just return majority instances (label = -1)"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         
     def fit_resample(self, X, y):
         """Returns the majority instances based on labels in y.
@@ -37,8 +37,8 @@ class ReturnMajority(RandomUnderSampler):
 class ReturnMinority(RandomUnderSampler):
     """Wrapper for BaseUnderSampler class but overloads fit_resample method
     to just return majority instances (label = -1)"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         
     def fit_resample(self, X, y):
         """Returns the minority instances based on labels in y.

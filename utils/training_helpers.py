@@ -114,7 +114,7 @@ class BayesianOptimizer():
         
         preprocessing_params, sampler_params, estimator_params = self._sort_params(params)
         
-        if not sampler_params and not preprocessing_params:
+        if not self.sampler and not self.preprocessor:
             # if no sampling parameters, no need to sample
             metric_result = repeated_cross_val(self.estimator, self.x, self.y, estimator_params)
         else:
@@ -180,14 +180,18 @@ class BayesianOptimizer():
         steps = []
         pipeline_params = {}
         
-        if sampler_params:
+        if self.sampler:
             steps.append(('sampler', self.sampler))
+        
+        if sampler_params:
             sampler_pipeline_params = {f'sampler__{key}':sampler_params[key] \
                                        for key in sampler_params}
             pipeline_params.update(sampler_pipeline_params)
         
-        if preprocessing_params:
+        if self.preprocessor:
             steps.append(('preprocessor', self.preprocessor))
+        
+        if preprocessing_params:
             pipeline_preprocessing_params = {f'preprocessor__{key}':preprocessing_params[key] \
                                              for key in preprocessing_params}
             pipeline_params.update(pipeline_preprocessing_params)
@@ -196,7 +200,7 @@ class BayesianOptimizer():
         pipeline_estimator_params = {f'estimator__{key}':estimator_params[key] \
                                      for key in estimator_params}
         pipeline_params.update(pipeline_estimator_params)
-        
+        print(steps)
         return Pipeline(steps), pipeline_params
         
     def train_and_return_model(self, params: dict, print_training_metric: bool = True):
@@ -211,30 +215,25 @@ class BayesianOptimizer():
         #classifier = self.estimator
         self.estimator.set_params(**estimator_params)
         
-        if preprocessing_params:
-            self.preprocessor.set_params(**preprocessing_params)
+        if self.preprocessor:
+            if preprocessing_params:
+                self.preprocessor.set_params(**preprocessing_params)
             try:
                 x = self.preprocessor.fit_transform(x,y)
             except:
                 x = self.preprocessor.fit_transform(x)
         
-        if not sampler_params:
+        if not self.sampler:
             # if no sampling parameters, no need to sample
             self.estimator.fit(x,y)
         else:
-            self.sampler.set_params(**sampler_params)
+            if sampler_params:
+                self.sampler.set_params(**sampler_params)
             x,y = self.sampler.fit_resample(x, y)            
             self.estimator.fit(x,y)
         
         # Evaluate metric on train set
         if print_training_metric:
-            
-            if preprocessing_params:
-                self.preprocessor.set_params(**preprocessing_params)
-                try:
-                    x = self.preprocessor.fit_transform(self.x,self.y)
-                except:
-                    x = self.preprocessor.fit_transform(self.x)
                     
             print(f'Value of metric on entire train set for best model: \
                   {self.metric(self.estimator,x,y)}')
