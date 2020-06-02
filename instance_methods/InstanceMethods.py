@@ -276,9 +276,11 @@ class MahalanobisDistanceKNN(BaseEstimator):
                     X[nearest_neighbors[i,:],:]).get_precision()
             
             if not (precision_matrix == 0).all():
-
+                
+                # Assume nearest neighbors in mahalanobis space also nearest in Euclidean.
+                # Algorithm prohbitively slow without this assumption
                 mahalanobis_distances = mahalanobis(sample_to_score = X[i,:],
-                                                    reference_array = self.train_X_,
+                                                    reference_array = X[nearest_neighbors[i,:],:],
                                                     precision_matrix = precision_matrix)
                 
                 # Use k-1 because first index counted as zero
