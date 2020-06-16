@@ -21,6 +21,7 @@ from imblearn.over_sampling import (SMOTE, RandomOverSampler, KMeansSMOTE,
 from imblearn.ensemble import BalancedBaggingClassifier
 from samplers.samplers import ReturnMajority, ReturnMinority
 from sklearn.covariance import MinCovDet, LedoitWolf
+from autoencoder.auto_encoder import AutoEncoder
 
 RANDOM_STATE = 10
 # parameters common to all models
@@ -28,7 +29,7 @@ common_params = {'path_to_data': '/Users/yaeger/Documents/Porphyria',
                  'save_training_data_path': '/Users/yaeger/Documents/Modules/Porphyria/results/training',
                  'save_model_path': '/Users/yaeger/Documents/Modules/Porphyria/models',
                  'metric': make_scorer(average_precision_score,needs_threshold=True),
-                 'max_evals': 15,
+                 'max_evals': 100,
                  'repetitions': 5,
                  'cv_fold': 2}
 
@@ -153,7 +154,7 @@ mad_knn = {'classifier': MahalanobisDistanceKNN(),
           'log_normalize': False, 
           'variables': ['K','k','alpha'],
           'distributions': ['quniform','quniform','uniform'],
-          'arguments': [(10,2000,1),(2,500,1),(0,0.01)], 
+          'arguments': [(300,2000,1),(2,300,1),(0,0.01)], 
           'variable_type': {'K': 'estimator', 'k': 'estimator', 
                             'alpha': 'estimator'}}
 
@@ -165,7 +166,7 @@ mad_knn_linear_pca = {'classifier': MahalanobisDistanceKNN(),
           'log_normalize': False, 
           'variables': ['K','k','alpha','n_components'],
           'distributions': ['quniform','quniform','uniform','quniform'],
-          'arguments': [(10,2000,1),(2,500,1),(0,0.01),(1,139,1)], 
+          'arguments': [(300,2000,1),(2,300,1),(0,0.01),(1,139,1)], 
           'variable_type': {'K': 'estimator', 'k': 'estimator', 
                             'alpha': 'estimator', 'n_components': 'preprocessor'}}
 
@@ -178,7 +179,7 @@ mad_knn_radial_pca = {'classifier': MahalanobisDistanceKNN(),
           'variables': ['K','k','alpha','n_components','gamma','precision_method'],
           'distributions': ['quniform','quniform','uniform','quniform','loguniform',
                             'choice'],
-          'arguments': [(10,2000,1),(2,500,1),(0,0.01),(1,139,1),(1e-6,300),
+          'arguments': [(500,2000,1),(2,500,1),(0,0.01),(1,139,1),(1e-6,300),
                         (MinCovDet, LedoitWolf)], 
           'variable_type': {'K': 'estimator', 'k': 'estimator',
                             'alpha': 'estimator', 'n_components': 'preprocessor',
@@ -271,6 +272,38 @@ ovc_majority = {'classifier': OneClassSVM(kernel='rbf'), 'model_name': 'One_Clas
               'arguments': [(1e-6,10),(0, 1)], 
               'variable_type': {'nu':'estimator','gamma':'estimator'}}
 
+ovc_all = {'classifier': OneClassSVM(kernel='rbf'), 'model_name': 'One_Class_SVM_All', 
+              'sampling_method': None, 
+              'preprocessing_method': None,
+              'log_normalize': True, 
+              'variables': ['gamma','nu'],
+              'distributions': ['loguniform','uniform'],
+              'arguments': [(1e-6,10),(0, 1)], 
+              'variable_type': {'nu':'estimator','gamma':'estimator'}}
+
+autoencoder = {'classifier': AutoEncoder(), 'model_name': 'AutoEncoder', 
+              'sampling_method': ReturnMajority(), 
+              'preprocessing_method': None,
+              'log_normalize': True, 
+              'variables': ['num_hidden','lambda_hidden', 'dropout_p',
+                            'use_dropout','train_epochs','batch_size',
+                            'learning_rate','hidden_activation_function',
+                            'alpha'],
+              'distributions': ['quniform','loguniform','uniform','choice',
+                                'quniform','choice','choice','choice','uniform'
+                                ],
+              'arguments': [(10,2780,1),(1e-16, 1),(0,1),(True,False),(5,120,1),
+                            (8,16,32,64,128,256,512),(1e-5,1e-4,1e-3,1e-2,1e-1),
+                            ('relu','sigmoid','tanh','selu','elu'),(0.99,1)], 
+              'variable_type': {'num_hidden':'estimator',
+                                'lambda_hidden':'estimator',
+                                'dropout_p': 'estimator',
+                                'use_dropout': 'estimator',
+                                'train_epochs': 'estimator',
+                                'batch_size': 'estimator',
+                                'learning_rate': 'estimator',
+                                'hidden_activation_function': 'estimator',
+                                'alpha': 'estimator'}}
 
 def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #svc_one_sided,
@@ -284,9 +317,9 @@ def make_model_param_list(input_list: list = [#svc,svc_tomek_links,
                                               #fd_knn_linear_pca,
                                               #svc_random_undersample,
                                               #svc_random_undersample_cost,
-                                              #ovc_minority],
-                                              mad_knn_linear_pca,
-                                              mad_knn],
+                                              #ovc_majority],
+                                              autoencoder],
+                                              #mad_knn],
                                               #fd_knn_radial_pca,
                                               #mad_knn,
                                               #mad_knn_linear_pca,

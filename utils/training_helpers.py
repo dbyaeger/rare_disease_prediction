@@ -81,7 +81,9 @@ class BayesianOptimizer():
                  arguments: list = [(0.1, 10),(1e-6,2)],
                  variable_type: dict = {'C':'estimator','gamma':'estimator'},
                  parameters_with_integer_values: list = ['n_estimators','K','k','n_neighbors',
-                                                         'n_components', 'k_neighbors']):
+                                                         'n_components', 'k_neighbors',
+                                                         'num_hidden', 'train_epochs',
+                                                         'batch_size']):
         self.sampler = sampler
         self.preprocessor = preprocessor
         self.x = x
@@ -200,7 +202,6 @@ class BayesianOptimizer():
         pipeline_estimator_params = {f'estimator__{key}':estimator_params[key] \
                                      for key in estimator_params}
         pipeline_params.update(pipeline_estimator_params)
-        print(steps)
         return Pipeline(steps), pipeline_params
         
     def train_and_return_model(self, params: dict, print_training_metric: bool = True):
