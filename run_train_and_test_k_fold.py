@@ -21,7 +21,7 @@ from samplers.samplers import ReturnMajority, ReturnMinority
 
 def run_train_and_test_k_fold(path_to_data: str = '/Users/yaeger/Documents/Porphyria',
                               models_to_run: list = [
-                                                     {'model_name': 'Mahalanobis_Distance_KNN', 'sampler': None}],     
+                                                     {'model_name': 'One_Class_SVM_Majority', 'sampler':  ReturnMajority()}],     
                               path_to_models: str = '/Users/yaeger/Documents/Modules/Porphyria/models',
                               save_directory: str = '/Users/yaeger/Documents/Modules/Porphyria/results/testing',
                               train_metrics: list = [average_precision_score, geometric_mean_score],

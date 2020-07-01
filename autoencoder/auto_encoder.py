@@ -76,7 +76,8 @@ class AutoEncoder(BaseEstimator):
         
         mse = np.zeros(X.shape[0])
         for i in range(X.shape[0]):
-            mse[i] = ((predicted[i,:] - X[i,:]).T)@(predicted[i,:] - X[i,:])
+            diff = (predicted[i,:] - X[i,:])
+            mse[i] = (diff.T)@(diff)
         
         pred_y[mse > self.threshold_] = outlier_label
         return pred_y
@@ -88,7 +89,8 @@ class AutoEncoder(BaseEstimator):
         
         mse = np.zeros(X.shape[0])
         for i in range(X.shape[0]):
-            mse[i] = ((predicted[i,:] - X[i,:]).T)@(predicted[i,:] - X[i,:])
+            diff = (predicted[i,:] - X[i,:])
+            mse[i] = (diff.T)@(diff)
 
         return mse
         
