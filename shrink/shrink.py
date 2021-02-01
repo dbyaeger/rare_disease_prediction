@@ -95,7 +95,7 @@ class SHRINK(BaseEstimator):
         """Returns predicted class based on input array.
 
         INPUTS:
-            X: array of training data, with features as columns and observations
+            X: data array, with features as columns and observations
             in rows.
             outlier_label: label for abnormal samples. Default of 1
             majority_label: label for normal samples. Default of -1
@@ -113,15 +113,13 @@ class SHRINK(BaseEstimator):
         return predictions
         
     def decision_function(self, X: np.ndarray):
-        """Returns sum-of-square distances to k nearest neighbors based on
-        input array.
+        """Returns decision function for input array.
 
         INPUTS:
-            X: array of training data, with features as columns and observations
+            X: data array, with features as columns and observations
             in rows.
         RETURNS:
-            distances: array of sum-of-square distances to k nearest neighbor
-            for each observation in X.
+            decision function value for each observation in X.
         """
         # Sum up predictions of classifiers_
         return np.array([clf.decision_function(X[:,clf.feature]) for clf in self.classifiers_]).sum(axis = 0)

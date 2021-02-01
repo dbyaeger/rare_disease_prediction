@@ -21,7 +21,7 @@ def test_on_shrink_iris():
     data = load_iris()
     X = data['data']
     
-    # Run PCA to reduce to 2-class problem
+    # Run PCA to reduce to 2-dimensional problem
     pca = PCA(n_components = 2)
     pca.fit(X)
     X = pca.fit_transform(X)

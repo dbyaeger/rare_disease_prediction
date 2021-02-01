@@ -10,7 +10,7 @@ from sklearn.base import BaseEstimator
 
 class RangeClassifier(BaseEstimator):
     """Very simple classifier that returns 1 for each entry that is within
-    the range [min, max] anf false otherwise.
+    the range [min, max] and false otherwise.
     
     INPUTS:
         X: 1-D numpy array of training data
